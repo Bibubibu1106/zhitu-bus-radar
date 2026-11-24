@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>知途实时公交</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="sky-backdrop">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+  </div>
+
+  <div class="container">
+    <!-- ==================== 主页 (常用看板 / 附近站点 / 搜索) ==================== -->
+    <div id="pageHome">
+      <div class="card">
+        <div class="brand-banner">
+          <div class="brand-title-wrap">
+            <div class="brand-bus-icon">🚌</div>
+            <div style="min-width:0;overflow:hidden;">
+              <div style="font-size:0.96rem;font-weight:900;letter-spacing:0.3px;white-space:nowrap;">知途实时公交</div>
+              <div id="brandSubText" style="font-size:0.71rem;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">全城公交实时位置 · 快到站震动提醒</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
+            <button id="topCityBtn" class="chip-btn" style="padding:3px 9px;font-size:0.74rem;color:var(--accent);border-color:rgba(37,99,235,0.28);" onclick="window.AppUI.openCityPickerModal()">上海 ▾</button>
+            <span class="lemon-tag" style="cursor:pointer;" onclick="window.AppUI.refreshCurrent()">15秒刷新</span>
+          </div>
+        </div>
+
+        <div class="search-bar">
+          <input id="searchInput" type="text" placeholder="先搜站点选线路，或临时查公交（如：陕西北路、24、41）" oninput="window.AppUI.onSearchInput(this.value)" />
+          <button id="searchClearBtn" class="text-btn" style="display:none;font-size:0.78rem;" onclick="window.AppUI.clearSearch()">清除</button>
+        </div>
+
+        <div id="searchResultBox" style="display:none;margin-top:10px;max-height:300px;overflow-y:auto;"></div>
+      </div>
+
+      <!-- 通知栏实时盯梢横幅 -->
+      <div id="watchBanner" class="watch-banner">
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:0.84rem;font-weight:800;" id="watchBannerTitle">正在盯梢候车</div>
+          <div style="font-size:0.75rem;opacity:0.9;margin-top:2px;" id="watchBannerDesc">每 15 秒刷新车辆位置…</div>
+        </div>
+        <button class="chip-btn watching" onclick="window.AppUI.stopWatchNow()">已上车/停止</button>
+      </div>
+
+      <!-- 子视图切换：常用看板 | 附近站点 -->
+      <div class="seg-row">
+        <div class="seg-group">
+          <button id="segFav" class="seg-item active" onclick="window.AppUI.switchHomeSubTab('fav')">常用看板</button>
+          <button id="segNearby" class="seg-item" onclick="window.AppUI.switchHomeSubTab('nearby')">附近站点</button>
+        </div>
+      </div>
+
+      <div id="favListBox"></div>
+      <div id="nearbyViewWrap" style="display:none;">
+        <div class="card" style="padding:12px 14px;margin-bottom:10px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
+            <div style="min-width:0;flex:1;">
+              <div style="font-size:0.72rem;color:var(--text-muted);margin-bottom:3px;">当前定位位置（用于检索周边公交站台）</div>
+              <div class="loc-pill" style="max-width:100%;" onclick="window.AppUI.openLocationPicker()">
+                <span class="dot dot-mint"></span>
+                <span id="locNameText">静安区陕西北路</span>
+                <span class="loc-sub">切换位置 ▾</span>
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;">
+              <div style="display:flex;align-items:center;gap:6px;">
+                <button class="chip-btn" style="padding:3px 8px;font-size:0.72rem;color:var(--accent);" onclick="window.AppUI.triggerGpsLocate()">GPS校准</button>
+                <button class="chip-btn" style="padding:3px 8px;font-size:0.72rem;color:var(--accent);" onclick="window.AppUI.refreshCurrent()">刷新</button>
+              </div>
+              <span id="refreshStamp" style="font-size:0.68rem;color:var(--text-muted);white-space:nowrap;">实时同步</span>
+            </div>
+          </div>
+        </div>
+        <div id="nearbyListBox"></div>
+      </div>
+    </div>
+
+    <!-- ==================== 设置页 ==================== -->
+    <div id="pageSettings" style="display:none;">
+      <div class="card">
+        <div style="font-size:0.94rem;font-weight:800;margin-bottom:8px;">快到站通知栏盯梢提醒</div>
+        <div class="setting-row">
+          <div>
+            <div style="font-weight:700;">提前几站震动提醒</div>
+            <div style="font-size:0.72rem;color:var(--text-muted);">车辆距候车站小于等于该站数时弹窗震动</div>
+          </div>
+          <div class="step-ctrl">
+            <button class="step-btn" onclick="window.AppUI.adjustSetting('alertStops', -1, 1, 6)">-</button>
+            <span id="valAlertStops" style="font-weight:800;min-width:38px;text-align:center;">2 站</span>
+            <button class="step-btn" onclick="window.AppUI.adjustSetting('alertStops', 1, 1, 6)">+</button>
+          </div>
+        </div>
+
+        <div class="setting-row">
+          <div>
+            <div style="font-weight:700;">提前几分钟提醒</div>
+            <div style="font-size:0.72rem;color:var(--text-muted);">预计到站时间小于等于该分钟数时触发</div>
+          </div>
+          <div class="step-ctrl">
+            <button class="step-btn" onclick="window.AppUI.adjustSetting('alertMinutes', -1, 1, 10)">-</button>
+            <span id="valAlertMins" style="font-weight:800;min-width:46px;text-align:center;">3 分钟</span>
+            <button class="step-btn" onclick="window.AppUI.adjustSetting('alertMinutes', 1, 1, 10)">+</button>
+          </div>
+        </div>
+
+        <div class="setting-row">
+          <div>
+            <div style="font-weight:700;">夜间免打扰（23:00 - 07:00）</div>
+            <div style="font-size:0.72rem;color:var(--text-muted);">夜间仅更新静默文字状态栏，不震动打扰</div>
+          </div>
+          <label class="switch">
+            <input id="chkNightDnd" type="checkbox" checked onchange="window.AppUI.toggleNightDnd(this.checked)" />
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <div class="setting-row">
+          <div>
+            <div style="font-weight:700;">外观主题</div>
+            <div style="font-size:0.72rem;color:var(--text-muted);">都市蔚蓝+柠檬黄 / 柔和深夜蓝</div>
+          </div>
+          <select id="selThemeMode" class="chip-btn" onchange="window.AppUI.changeThemeMode(this.value)">
+            <option value="auto">随时间自动切换</option>
+            <option value="light">日间都市蔚蓝</option>
+            <option value="night">夜间深海星蓝</option>
+          </select>
+        </div>
+
+        <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">
+          <button class="chip-btn primary" onclick="window.AppUI.sendTestAlert()">发送测试到站通知</button>
+          <button id="btnKeepAlive" class="chip-btn" onclick="window.AppUI.openBatteryKeepAlive()">省电白名单（仅需点一次）</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div style="margin-bottom:8px;">
+          <div style="font-size:0.94rem;font-weight:800;">常用站点与线路管理</div>
+        </div>
+        <div id="manageFavBox"></div>
+      </div>
+
+      <div class="card">
+        <div style="font-size:0.94rem;font-weight:800;margin-bottom:8px;">数据来源与通道说明</div>
+        <div style="font-size:0.77rem;color:var(--text-sub);line-height:1.68;word-break:break-all;">
+          <div style="margin-bottom:8px;">
+            <span class="dot dot-sky"></span><strong>全国实时公交数据源</strong>：接入车来了全国 486 城实时公交网关，同步全线车载 GPS 实时站序、到站距离与预计分钟数；每条常用路线独立保存所属城市编码（<code>cityId</code>），内置双授权通道（<code>webapp_alipay_fuwu</code> / <code>webapp_meizu_map</code>）自动容灾切换。<br/>
+            • 实时公交接口：<code>https://web.chelaile.net.cn/api/</code><br/>
+            • 全国城市目录：<code>https://web.chelaile.net.cn/wwd/ncitylist</code>
+          </div>
+          <div>
+            <span class="dot dot-mint"></span><strong>跨城定位与地理编码</strong>：Android 原生 <code>LocationManager</code> + <code>Geocoder</code>（含 WGS-84 转 GCJ-02 国测局火星坐标校准、GPS 自动识别所在城市）及和风天气全国 GeoAPI 兜底。<br/>
+            • 地理编码接口：<code>https://mk487vpakf.re.qweatherapi.com/geo/v2/city/lookup</code>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 全线动态站牌轴抽屉弹窗 -->
+  <div id="lineModalMask" class="modal-mask" onclick="if(event.target===this)window.DetailMod.closeLineDetailModal()">
+    <div class="modal-sheet">
+      <div class="sheet-header">
+        <div style="flex:1;min-width:0;">
+          <div id="lineSheetTitle" style="font-size:1.02rem;font-weight:900;">线路详情</div>
+          <div id="lineSheetSub" style="font-size:0.73rem;color:var(--text-muted);margin-top:2px;">实时信号同步中</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <button class="text-btn" onclick="window.DetailMod.refreshLineDetailModal(true)">刷新</button>
+          <button class="close-fixed-btn" onclick="window.DetailMod.closeLineDetailModal()">✕</button>
+        </div>
+      </div>
+      <div id="lineSheetBody" class="sheet-body"></div>
+    </div>
+  </div>
+
+  <!-- 辅助弹窗（同站线路 / 首站时刻表 / 定位切换） -->
+  <div id="auxModalMask" class="modal-mask" style="z-index:970;" onclick="if(event.target===this)window.DetailMod.closeAuxSheet()">
+    <div class="modal-sheet" style="max-height:76vh;">
+      <div class="sheet-header">
+        <div id="auxSheetTitle" style="font-size:0.96rem;font-weight:900;">详情</div>
+        <button class="close-fixed-btn" onclick="window.DetailMod.closeAuxSheet()">✕</button>
+      </div>
+      <div id="auxSheetBody" class="sheet-body"></div>
+    </div>
+  </div>
+
+  <!-- 2秒自动关闭轻提示（固定统一关闭按钮尺寸） -->
+  <div id="toastBar" class="toast-bar">
+    <span id="toastText">已更新</span>
+    <button class="toast-close" onclick="window.AppUI.hideToast()">✕</button>
+  </div>
+
+  <!-- 底部紧凑悬浮双栏导航 -->
+  <nav class="bottom-nav">
+    <div id="tabHome" class="nav-tab active" onclick="window.AppUI.switchMainPage('home')">主页</div>
+    <div id="tabSettings" class="nav-tab" onclick="window.AppUI.switchMainPage('settings')">设置</div>
+  </nav>
+
+  <script src="data.js"></script>
+  <script src="detail.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

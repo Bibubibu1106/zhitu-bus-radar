@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- 都市蔚蓝渐变感底色（无绿色，与天气App一眼区分） -->
+    <path
+        android:fillColor="#93C5FD"
+        android:pathData="M0,0h108v108h-108z" />
+    <path
+        android:fillColor="#3B82F6"
+        android:pathData="M0,62Q54,44 108,60L108,108L0,108z" />
+    <path
+        android:fillColor="#2563EB"
+        android:fillAlpha="0.55"
+        android:pathData="M0,78Q54,66 108,80L108,108L0,108z" />
+
+    <!-- 右上方柔和到站电波弧线与暖阳信号点 -->
+    <path
+        android:fillColor="#FEF08A"
+        android:pathData="M78,24m-6,0a6,6 0,1 1,12 0a6,6 0,1 1,-12 0" />
+    <path
+        android:fillColor="#FACC15"
+        android:pathData="M78,24m-3.6,0a3.6,3.6 0,1 1,7.2 0a3.6,3.6 0,1 1,-7.2 0" />
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="3.2"
+        android:strokeLineCap="round"
+        android:fillColor="#00000000"
+        android:pathData="M65,24A13,13 0 0,1 78,11" />
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeAlpha="0.72"
+        android:strokeWidth="2.8"
+        android:strokeLineCap="round"
+        android:fillColor="#00000000"
+        android:pathData="M59,26A20,20 0 0,1 80,5" />
+
+    <!-- 极简圆润奶油白城市巴士主体 -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M31,28h46a10,10 0,0 1,10 10v32a8,8 0,0 1,-8 8h-50a8,8 0,0 1,-8 -8v-32a10,10 0,0 1,10 -10z" />
+
+    <!-- 顶部柠檬暖黄线路牌 -->
+    <path
+        android:fillColor="#FACC15"
+        android:pathData="M43,33h22a3,3 0,0 1,3 3v3a3,3 0,0 1,-3 3h-22a3,3 0,0 1,-3 -3v-3a3,3 0,0 1,3 -3z" />
+
+    <!-- 都市蔚蓝前挡风玻璃 -->
+    <path
+        android:fillColor="#2563EB"
+        android:pathData="M33,45h42a4,4 0,0 1,4 4v11a4,4 0,0 1,-4 4h-42a4,4 0,0 1,-4 -4v-11a4,4 0,0 1,4 -4z" />
+
+    <!-- 挡风玻璃高光斜纹 -->
+    <path
+        android:strokeColor="#BFDBFE"
+        android:strokeWidth="2.8"
+        android:strokeLineCap="round"
+        android:fillColor="#00000000"
+        android:pathData="M36,59L45,49M44,59L50,53" />
+
+    <!-- 柠檬暖黄圆润车灯 -->
+    <path
+        android:fillColor="#F59E0B"
+        android:pathData="M35,70m-3.6,0a3.6,3.6 0,1 1,7.2 0a3.6,3.6 0,1 1,-7.2 0" />
+    <path
+        android:fillColor="#F59E0B"
+        android:pathData="M73,70m-3.6,0a3.6,3.6 0,1 1,7.2 0a3.6,3.6 0,1 1,-7.2 0" />
+
+    <!-- 蔚蓝进气格栅 -->
+    <path
+        android:fillColor="#93C5FD"
+        android:pathData="M46,69h16a2,2 0,0 1,2 2v0.5a2,2 0,0 1,-2 2h-16a2,2 0,0 1,-2 -2v-0.5a2,2 0,0 1,2 -2z" />
+
+    <!-- 底部柔和深蓝灰轮胎 -->
+    <path
+        android:fillColor="#334155"
+        android:pathData="M32,78h10v5a3,3 0,0 1,-3 3h-4a3,3 0,0 1,-3 -3z" />
+    <path
+        android:fillColor="#334155"
+        android:pathData="M66,78h10v5a3,3 0,0 1,-3 3h-4a3,3 0,0 1,-3 -3z" />
+</vector>

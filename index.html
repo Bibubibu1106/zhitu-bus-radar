@@ -1,0 +1,2833 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>知途实时公交</title>
+  <style>
+:root {
+  --bg-grad-1: #dbeafe;
+  --bg-grad-2: #eff6ff;
+  --bg-grad-3: #fefce8;
+  --orb-1: rgba(250, 204, 21, 0.58);
+  --orb-2: rgba(59, 130, 246, 0.34);
+  --orb-3: rgba(147, 197, 253, 0.62);
+  --card-bg: rgba(255, 255, 255, 0.72);
+  --card-inner: rgba(255, 255, 255, 0.66);
+  --card-border: rgba(255, 255, 255, 0.92);
+  --glass-shadow: 0 10px 28px rgba(37, 99, 235, 0.09), inset 0 1px 1px rgba(255, 255, 255, 0.96);
+  --text-main: #1e293b;
+  --text-sub: #334155;
+  --text-muted: #64748b;
+  --accent: #2563eb;
+  --accent-blue: #3b82f6;
+  --accent-lemon: #eab308;
+  --accent-soft: rgba(37, 99, 235, 0.12);
+  --warn-soft: rgba(250, 204, 21, 0.24);
+  --font-sans: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+
+body.theme-night {
+  --bg-grad-1: #1e293b;
+  --bg-grad-2: #172554;
+  --bg-grad-3: #0f172a;
+  --orb-1: rgba(250, 204, 21, 0.22);
+  --orb-2: rgba(59, 130, 246, 0.24);
+  --orb-3: rgba(96, 165, 250, 0.18);
+  --card-bg: rgba(30, 41, 59, 0.76);
+  --card-inner: rgba(15, 23, 42, 0.60);
+  --card-border: rgba(255, 255, 255, 0.18);
+  --glass-shadow: 0 8px 26px rgba(0, 0, 0, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  --text-main: #f8fafc;
+  --text-sub: #e2e8f0;
+  --text-muted: #94a3b8;
+  --accent-soft: rgba(59, 130, 246, 0.22);
+  --warn-soft: rgba(250, 204, 21, 0.20);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { overflow-x: hidden; max-width: 100vw; }
+body {
+  font-family: var(--font-sans);
+  background: linear-gradient(165deg, var(--bg-grad-1) 0%, var(--bg-grad-2) 52%, var(--bg-grad-3) 100%);
+  background-attachment: fixed;
+  color: var(--text-main);
+  min-height: 100vh;
+  line-height: 1.48;
+  padding-bottom: 86px;
+  transition: background 0.4s ease, color 0.3s ease;
+}
+
+.sky-backdrop { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+.orb { position: absolute; border-radius: 50%; transition: all 0.5s ease; }
+.orb-1 { width: 230px; height: 230px; top: -45px; right: -30px; background: var(--orb-1); filter: blur(38px); }
+.orb-2 { width: 290px; height: 190px; top: 130px; left: -65px; background: var(--orb-2); filter: blur(46px); }
+.orb-3 { width: 260px; height: 210px; bottom: 10%; right: -50px; background: var(--orb-3); filter: blur(50px); }
+
+.container { position: relative; z-index: 1; max-width: 680px; margin: 0 auto; padding: 12px 12px 20px; }
+
+.card {
+  background: var(--card-bg);
+  backdrop-filter: blur(26px) saturate(180%);
+  -webkit-backdrop-filter: blur(26px) saturate(180%);
+  border: 1px solid var(--card-border);
+  border-radius: 22px;
+  padding: 14px;
+  margin-bottom: 12px;
+  box-shadow: var(--glass-shadow);
+}
+
+/* Soft indicator dots - Urban Azure & Lemon Yellow */
+.dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; vertical-align: middle; }
+.dot-mint { background: #f59e0b; box-shadow: 0 0 8px rgba(245, 158, 11, 0.65); }
+.dot-sky { background: #3b82f6; box-shadow: 0 0 7px rgba(59, 130, 246, 0.55); }
+.dot-amber { background: #facc15; box-shadow: 0 0 8px rgba(250, 204, 21, 0.65); }
+.dot-muted { background: #94a3b8; }
+
+.brand-banner {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  padding-bottom: 10px; margin-bottom: 10px; border-bottom: 1px dashed rgba(59, 130, 246, 0.22);
+}
+.brand-title-wrap { display: flex; align-items: center; gap: 9px; flex: 1; min-width: 0; overflow: hidden; }
+.brand-bus-icon {
+  width: 36px; height: 36px; min-width: 36px; border-radius: 12px; flex-shrink: 0;
+  background: linear-gradient(135deg, #2563eb, #3b82f6);
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 1.15rem; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.28);
+  border: 1.5px solid #fef08a;
+}
+.lemon-tag {
+  display: inline-flex; align-items: center; gap: 3px;
+  padding: 3px 9px; border-radius: 999px; font-size: 0.68rem; font-weight: 800;
+  background: linear-gradient(135deg, #fef08a, #fde047); color: #854d0e;
+  border: 1px solid rgba(250, 204, 21, 0.65);
+  white-space: nowrap; flex-shrink: 0;
+}
+
+.top-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
+.loc-pill {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 0.88rem; font-weight: 800; color: var(--text-main);
+  cursor: pointer; max-width: 72%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.loc-sub { font-size: 0.73rem; font-weight: 600; color: var(--text-muted); margin-left: 4px; }
+.text-btn {
+  background: transparent; border: none; color: var(--text-sub);
+  font-size: 0.82rem; font-weight: 700; cursor: pointer; padding: 4px 6px; border-radius: 8px;
+}
+.text-btn:active { opacity: 0.65; }
+
+.search-bar {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--card-inner); border: 1px solid var(--card-border);
+  border-radius: 14px; padding: 7px 11px;
+}
+.search-bar input {
+  flex: 1; border: none; outline: none; background: transparent;
+  color: var(--text-main); font-size: 0.84rem;
+}
+.search-bar input::placeholder { color: var(--text-muted); }
+
+/* Sub-mode segmented switch inside Home */
+.seg-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; gap: 8px; }
+.seg-group {
+  display: inline-flex; background: var(--card-inner); border: 1px solid var(--card-border);
+  border-radius: 999px; padding: 3px; gap: 3px;
+}
+.seg-item {
+  padding: 5px 14px; border-radius: 999px; font-size: 0.78rem; font-weight: 800;
+  color: var(--text-muted); cursor: pointer; border: none; background: transparent;
+  transition: all 0.2s ease;
+}
+.seg-item.active {
+  background: linear-gradient(135deg, #2563eb, #3b82f6);
+  color: #ffffff; box-shadow: 0 3px 10px rgba(37, 99, 235, 0.30);
+}
+
+/* Active Watch Banner (Lemon Gold + Azure contrast) */
+.watch-banner {
+  border-radius: 20px; padding: 13px 14px; margin-bottom: 12px;
+  background: linear-gradient(135deg, rgba(254, 240, 138, 0.88), rgba(219, 234, 254, 0.88));
+  backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(250, 204, 21, 0.78);
+  box-shadow: 0 8px 24px rgba(234, 179, 8, 0.16);
+  display: none; align-items: center; justify-content: space-between; gap: 10px;
+}
+body.theme-night .watch-banner {
+  background: linear-gradient(135deg, rgba(161, 98, 7, 0.42), rgba(30, 58, 138, 0.78));
+  border-color: rgba(250, 204, 21, 0.45);
+}
+.watch-banner.show { display: flex; }
+
+/* Pinned Route Card */
+.bus-card {
+  background: var(--card-bg);
+  backdrop-filter: blur(26px) saturate(180%); -webkit-backdrop-filter: blur(26px) saturate(180%);
+  border: 1px solid var(--card-border); border-radius: 20px;
+  padding: 13px 14px; margin-bottom: 10px; box-shadow: var(--glass-shadow);
+  transition: transform 0.15s ease;
+}
+.bus-card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; width: 100%; overflow: hidden; }
+.route-badge {
+  display: inline-flex; align-items: center; justify-content: center; gap: 4px;
+  padding: 3px 10px; border-radius: 10px; font-size: 0.90rem; font-weight: 900;
+  background: linear-gradient(135deg, #2563eb, #3b82f6);
+  color: #ffffff; border: 1px solid rgba(147, 197, 253, 0.55);
+  box-shadow: 0 3px 10px rgba(37, 99, 235, 0.22);
+  white-space: nowrap; flex-shrink: 0;
+}
+body.theme-night .route-badge {
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  color: #ffffff; border-color: rgba(147, 197, 253, 0.4);
+}
+.dir-text { font-size: 0.78rem; color: var(--text-sub); font-weight: 700; margin-top: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.stop-text { font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.eta-box { text-align: right; flex: 0 0 auto; width: 106px; max-width: 112px; overflow: hidden; }
+.eta-main { font-size: 1.34rem; font-weight: 900; color: #2563eb; line-height: 1.15; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+body.theme-night .eta-main { color: #60a5fa; }
+.eta-main.arriving {
+  display: inline-block; padding: 2px 9px; border-radius: 10px;
+  font-size: 0.96rem; background: linear-gradient(135deg, #facc15, #f59e0b);
+  color: #fff; box-shadow: 0 3px 10px rgba(245, 158, 11, 0.32);
+}
+body.theme-night .eta-main.arriving { color: #1e293b; background: linear-gradient(135deg, #fef08a, #facc15); }
+.eta-main.idle { font-size: 0.90rem; font-weight: 700; color: var(--text-muted); padding-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.eta-unit { font-size: 0.74rem; font-weight: 700; margin-left: 2px; }
+.eta-sub { font-size: 0.71rem; color: var(--text-muted); margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+
+.bus-card-actions {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 6px; margin-top: 10px; padding-top: 9px;
+  border-top: 1px solid var(--card-border);
+}
+.chip-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 4px;
+  padding: 5px 10px; border-radius: 10px; font-size: 0.74rem; font-weight: 700;
+  border: 1px solid var(--card-border); background: var(--card-inner);
+  color: var(--text-sub); cursor: pointer; white-space: nowrap; flex-shrink: 0;
+}
+.chip-btn.watching {
+  background: linear-gradient(135deg, #f59e0b, #eab308);
+  color: #ffffff; border-color: transparent;
+  box-shadow: 0 3px 10px rgba(234, 179, 8, 0.30);
+}
+.chip-btn.primary {
+  background: linear-gradient(135deg, #2563eb, #3b82f6);
+  color: #ffffff; border-color: transparent;
+  box-shadow: 0 3px 10px rgba(37, 99, 235, 0.26);
+}
+
+/* Nearby Stop Group */
+.near-stop-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.near-stop-name { font-size: 0.92rem; font-weight: 800; }
+.dist-tag {
+  font-size: 0.72rem; font-weight: 800; padding: 2px 9px; border-radius: 999px;
+  background: linear-gradient(135deg, rgba(254, 240, 138, 0.75), rgba(253, 224, 71, 0.55));
+  color: #854d0e; border: 1px solid rgba(250, 204, 21, 0.55);
+}
+body.theme-night .dist-tag { background: rgba(250, 204, 21, 0.22); color: #fef08a; }
+.near-line-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 8px 10px; border-radius: 12px; background: var(--card-inner);
+  border: 1px solid var(--card-border); margin-bottom: 6px; cursor: pointer;
+}
+.near-line-row:last-child { margin-bottom: 0; }
+
+/* Full-Line Vertical Timeline Modal / Drawer */
+.modal-mask {
+  position: fixed; inset: 0; z-index: 950;
+  background: rgba(15, 23, 42, 0.36);
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  display: none; align-items: flex-end; justify-content: center;
+}
+.modal-mask.open { display: flex; }
+.modal-sheet {
+  width: 100%; max-width: 680px; max-height: 88vh;
+  background: var(--bg-grad-2);
+  border-top-left-radius: 26px; border-top-right-radius: 26px;
+  border: 1px solid var(--card-border);
+  box-shadow: 0 -10px 36px rgba(15, 23, 42, 0.18);
+  display: flex; flex-direction: column; overflow: hidden;
+}
+body.theme-night .modal-sheet { background: #1e293b; }
+.sheet-header {
+  padding: 14px 16px 10px; border-bottom: 1px solid var(--card-border);
+  display: flex; justify-content: space-between; align-items: flex-start; gap: 10px;
+}
+/* Fixed uniform close button size per user preference */
+.close-fixed-btn {
+  width: 32px; height: 32px; min-width: 32px; min-height: 32px;
+  border-radius: 50%; border: 1px solid var(--card-border);
+  background: var(--card-inner); color: var(--text-sub);
+  font-size: 0.95rem; font-weight: 800; line-height: 1;
+  display: inline-flex; align-items: center; justify-content: center; cursor: pointer;
+}
+.sheet-body { padding: 12px 16px 24px; overflow-y: auto; flex: 1; -webkit-overflow-scrolling: touch; }
+
+/* Vertical Route Station Axis (Illustrated Bus Track like user's reference image) */
+.timeline-list {
+  position: relative;
+  padding: 10px 6px 14px 4px;
+  margin-top: 4px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 20px;
+}
+.stn-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-height: 54px;
+  padding: 10px 10px 10px 92px;
+  border-radius: 14px;
+  cursor: pointer;
+}
+/* Vertical track segment from previous station (order-1) to current station (order) */
+.stn-seg-line {
+  position: absolute;
+  left: 65px;
+  top: -27px;
+  height: 54px;
+  width: 5px;
+  background: #3b82f6;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.stn-seg-line.seg-amber {
+  background: #f59e0b;
+}
+.stn-seg-line.seg-after {
+  background: #93c5fd;
+  opacity: 0.55;
+}
+.stn-seg-arrow {
+  color: #ffffff;
+  font-size: 9px;
+  line-height: 1;
+  font-weight: 900;
+  transform: translateY(-1px);
+  user-select: none;
+}
+/* Hollow circle station node on the track */
+.stn-node {
+  position: absolute;
+  left: 60px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 3px solid #3b82f6;
+  z-index: 3;
+}
+.stn-node.node-amber {
+  border-color: #f59e0b;
+}
+.stn-node.node-after {
+  border-color: #93c5fd;
+}
+/* Blue Bus-Stop Sign Badge for the selected waiting station (matches screenshot) */
+.stn-target-sign {
+  position: absolute;
+  left: 52px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 31px;
+  height: 31px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  border: 2.5px solid #ffffff;
+  box-shadow: 0 3px 10px rgba(37, 99, 235, 0.35);
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.stn-item.target {
+  background: linear-gradient(90deg, rgba(219, 234, 254, 0.0) 0%, rgba(219, 234, 254, 0.65) 28%, rgba(254, 240, 138, 0.38) 100%);
+}
+body.theme-night .stn-item.target {
+  background: linear-gradient(90deg, rgba(30, 58, 138, 0.0) 0%, rgba(30, 58, 138, 0.45) 30%, rgba(234, 179, 8, 0.18) 100%);
+}
+/* Left Bus Lane: SVG Blue Mini-Bus positioned either AT station or ON THE ROAD between stations */
+.bus-fig-wrap {
+  position: absolute;
+  left: 6px;
+  width: 44px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 5;
+  pointer-events: none;
+}
+.bus-fig-wrap.at-station {
+  top: 50%;
+  transform: translateY(-50%);
+}
+.bus-fig-wrap.on-road {
+  top: -14px;
+  transform: translateY(-50%);
+}
+.bus-fig-badge {
+  font-size: 0.60rem;
+  font-weight: 800;
+  padding: 0 4px;
+  border-radius: 5px;
+  margin-top: 1px;
+  line-height: 1.3;
+  white-space: nowrap;
+}
+.bus-fig-wrap.at-station .bus-fig-badge {
+  background: rgba(245, 158, 11, 0.18);
+  color: #b45309;
+}
+.bus-fig-wrap.on-road .bus-fig-badge {
+  background: rgba(37, 99, 235, 0.14);
+  color: #1d4ed8;
+}
+body.theme-night .bus-fig-wrap.at-station .bus-fig-badge { color: #fde047; background: rgba(250, 204, 21, 0.2); }
+body.theme-night .bus-fig-wrap.on-road .bus-fig-badge { color: #93c5fd; background: rgba(59, 130, 246, 0.25); }
+
+.stn-title {
+  font-size: 0.90rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+.stn-item.target .stn-title {
+  color: #2563eb;
+  font-weight: 900;
+  font-size: 0.95rem;
+}
+body.theme-night .stn-item.target .stn-title {
+  color: #60a5fa;
+}
+.stn-item.after-target .stn-title {
+  color: var(--text-muted);
+}
+.metro-pill {
+  display: inline-block;
+  font-size: 0.68rem;
+  font-weight: 800;
+  padding: 1px 6px;
+  border-radius: 5px;
+  margin-left: 5px;
+  background: rgba(37, 99, 235, 0.13);
+  color: #2563eb;
+  vertical-align: middle;
+}
+body.theme-night .metro-pill { color: #93c5fd; background: rgba(59, 130, 246, 0.22); }
+.bus-live-tag {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 2px 9px; border-radius: 999px; font-size: 0.72rem; font-weight: 800;
+  background: linear-gradient(135deg, #f59e0b, #eab308); color: #ffffff;
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.35); white-space: nowrap;
+}
+.bus-live-tag.enroute {
+  background: linear-gradient(135deg, #2563eb, #3b82f6);
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.28);
+}
+
+/* Settings & Switch */
+.setting-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 10px 0; border-bottom: 1px solid var(--card-border); font-size: 0.83rem; gap: 10px;
+}
+.setting-row:last-child { border-bottom: none; }
+.switch { position: relative; display: inline-block; width: 48px; height: 26px; flex-shrink: 0; }
+.switch input { opacity: 0; width: 0; height: 0; }
+.slider { position: absolute; inset: 0; background-color: #cbd5e1; transition: 0.25s; border-radius: 26px; cursor: pointer; }
+.slider:before {
+  position: absolute; content: ""; height: 18px; width: 18px; left: 4px; bottom: 4px;
+  background-color: #fff; transition: 0.25s; border-radius: 50%;
+}
+input:checked + .slider { background: linear-gradient(135deg, #2563eb, #3b82f6); }
+input:checked + .slider:before { transform: translateX(22px); }
+
+.step-ctrl { display: inline-flex; align-items: center; gap: 8px; }
+.step-btn {
+  width: 28px; height: 28px; border-radius: 8px; border: 1px solid var(--card-border);
+  background: var(--card-inner); color: var(--text-main); font-weight: 800; cursor: pointer;
+}
+
+/* Compact Floating Bottom Navigation Pill (主页 | 设置) */
+.bottom-nav {
+  position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%);
+  background: var(--card-bg);
+  backdrop-filter: blur(28px) saturate(180%); -webkit-backdrop-filter: blur(28px) saturate(180%);
+  border: 1px solid var(--card-border); border-radius: 999px;
+  padding: 4px; display: inline-flex; gap: 4px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.14); z-index: 900;
+}
+.nav-tab {
+  padding: 6px 22px; border-radius: 999px; font-size: 0.82rem; font-weight: 800;
+  color: var(--text-muted); cursor: pointer; transition: all 0.2s ease; white-space: nowrap;
+}
+.nav-tab.active {
+  background: linear-gradient(135deg, #2563eb, #3b82f6);
+  color: #ffffff; box-shadow: 0 4px 14px rgba(37, 99, 235, 0.32);
+}
+
+/* 2s Auto-Dismiss Frosted Toast with fixed close button */
+.toast-bar {
+  position: fixed; bottom: 74px; left: 14px; right: 14px; max-width: 480px; margin: 0 auto;
+  background: rgba(15, 23, 42, 0.88);
+  backdrop-filter: blur(22px); -webkit-backdrop-filter: blur(22px);
+  color: #f8fafc; border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 16px; padding: 10px 12px 10px 15px; z-index: 999;
+  display: none; align-items: center; justify-content: space-between; gap: 10px;
+  font-size: 0.82rem; font-weight: 600; box-shadow: 0 10px 28px rgba(0, 0, 0, 0.28);
+}
+.toast-bar.show { display: flex; }
+.toast-close {
+  width: 26px; height: 26px; min-width: 26px; min-height: 26px;
+  border-radius: 50%; border: 1px solid rgba(255, 255, 255, 0.28);
+  background: rgba(255, 255, 255, 0.12); color: #f8fafc;
+  font-size: 0.8rem; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; cursor: pointer;
+}
+
+</style>
+</head>
+<body>
+  <div class="sky-backdrop">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+  </div>
+
+  <div class="container">
+    <!-- ==================== 主页 (常用看板 / 附近站点 / 搜索) ==================== -->
+    <div id="pageHome">
+      <div class="card">
+        <div class="brand-banner">
+          <div class="brand-title-wrap">
+            <div class="brand-bus-icon">🚌</div>
+            <div style="min-width:0;overflow:hidden;">
+              <div style="font-size:0.96rem;font-weight:900;letter-spacing:0.3px;white-space:nowrap;">知途实时公交</div>
+              <div id="brandSubText" style="font-size:0.71rem;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">全城公交实时位置 · 快到站震动提醒</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
+            <button id="topCityBtn" class="chip-btn" style="padding:3px 9px;font-size:0.74rem;color:var(--accent);border-color:rgba(37,99,235,0.28);" onclick="window.AppUI.openCityPickerModal()">上海 ▾</button>
+            <span class="lemon-tag" style="cursor:pointer;" onclick="window.AppUI.refreshCurrent()">15秒刷新</span>
+          </div>
+        </div>
+
+        <div class="search-bar">
+          <input id="searchInput" type="text" placeholder="先搜站点选线路，或临时查公交（如：陕西北路、24、41）" oninput="window.AppUI.onSearchInput(this.value)" />
+          <button id="searchClearBtn" class="text-btn" style="display:none;font-size:0.78rem;" onclick="window.AppUI.clearSearch()">清除</button>
+        </div>
+
+        <div id="searchResultBox" style="display:none;margin-top:10px;max-height:300px;overflow-y:auto;"></div>
+      </div>
+
+      <!-- 通知栏实时盯梢横幅 -->
+      <div id="watchBanner" class="watch-banner">
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:0.84rem;font-weight:800;" id="watchBannerTitle">正在盯梢候车</div>
+          <div style="font-size:0.75rem;opacity:0.9;margin-top:2px;" id="watchBannerDesc">每 15 秒刷新车辆位置…</div>
+        </div>
+        <button class="chip-btn watching" onclick="window.AppUI.stopWatchNow()">已上车/停止</button>
+      </div>
+
+      <!-- 子视图切换：常用看板 | 附近站点 -->
+      <div class="seg-row">
+        <div class="seg-group">
+          <button id="segFav" class="seg-item active" onclick="window.AppUI.switchHomeSubTab('fav')">常用看板</button>
+          <button id="segNearby" class="seg-item" onclick="window.AppUI.switchHomeSubTab('nearby')">附近站点</button>
+        </div>
+      </div>
+
+      <div id="favListBox"></div>
+      <div id="nearbyViewWrap" style="display:none;">
+        <div class="card" style="padding:12px 14px;margin-bottom:10px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
+            <div style="min-width:0;flex:1;">
+              <div style="font-size:0.72rem;color:var(--text-muted);margin-bottom:3px;">当前定位位置（用于检索周边公交站台）</div>
+              <div class="loc-pill" style="max-width:100%;" onclick="window.AppUI.openLocationPicker()">
+                <span class="dot dot-mint"></span>
+                <span id="locNameText">静安区陕西北路</span>
+                <span class="loc-sub">切换位置 ▾</span>
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;">
+              <div style="display:flex;align-items:center;gap:6px;">
+                <button class="chip-btn" style="padding:3px 8px;font-size:0.72rem;color:var(--accent);" onclick="window.AppUI.triggerGpsLocate()">GPS校准</button>
+                <button class="chip-btn" style="padding:3px 8px;font-size:0.72rem;color:var(--accent);" onclick="window.AppUI.refreshCurrent()">刷新</button>
+              </div>
+              <span id="refreshStamp" style="font-size:0.68rem;color:var(--text-muted);white-space:nowrap;">实时同步</span>
+            </div>
+          </div>
+        </div>
+        <div id="nearbyListBox"></div>
+      </div>
+    </div>
+
+    <!-- ==================== 设置页 ==================== -->
+    <div id="pageSettings" style="display:none;">
+      <div class="card">
+        <div style="font-size:0.94rem;font-weight:800;margin-bottom:8px;">快到站通知栏盯梢提醒</div>
+        <div class="setting-row">
+          <div>
+            <div style="font-weight:700;">提前几站震动提醒</div>
+            <div style="font-size:0.72rem;color:var(--text-muted);">车辆距候车站小于等于该站数时弹窗震动</div>
+          </div>
+          <div class="step-ctrl">
+            <button class="step-btn" onclick="window.AppUI.adjustSetting('alertStops', -1, 1, 6)">-</button>
+            <span id="valAlertStops" style="font-weight:800;min-width:38px;text-align:center;">2 站</span>
+            <button class="step-btn" onclick="window.AppUI.adjustSetting('alertStops', 1, 1, 6)">+</button>
+          </div>
+        </div>
+
+        <div class="setting-row">
+          <div>
+            <div style="font-weight:700;">提前几分钟提醒</div>
+            <div style="font-size:0.72rem;color:var(--text-muted);">预计到站时间小于等于该分钟数时触发</div>
+          </div>
+          <div class="step-ctrl">
+            <button class="step-btn" onclick="window.AppUI.adjustSetting('alertMinutes', -1, 1, 10)">-</button>
+            <span id="valAlertMins" style="font-weight:800;min-width:46px;text-align:center;">3 分钟</span>
+            <button class="step-btn" onclick="window.AppUI.adjustSetting('alertMinutes', 1, 1, 10)">+</button>
+          </div>
+        </div>
+
+        <div class="setting-row">
+          <div>
+            <div style="font-weight:700;">夜间免打扰（23:00 - 07:00）</div>
+            <div style="font-size:0.72rem;color:var(--text-muted);">夜间仅更新静默文字状态栏，不震动打扰</div>
+          </div>
+          <label class="switch">
+            <input id="chkNightDnd" type="checkbox" checked onchange="window.AppUI.toggleNightDnd(this.checked)" />
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <div class="setting-row">
+          <div>
+            <div style="font-weight:700;">外观主题</div>
+            <div style="font-size:0.72rem;color:var(--text-muted);">都市蔚蓝+柠檬黄 / 柔和深夜蓝</div>
+          </div>
+          <select id="selThemeMode" class="chip-btn" onchange="window.AppUI.changeThemeMode(this.value)">
+            <option value="auto">随时间自动切换</option>
+            <option value="light">日间都市蔚蓝</option>
+            <option value="night">夜间深海星蓝</option>
+          </select>
+        </div>
+
+        <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">
+          <button class="chip-btn primary" onclick="window.AppUI.sendTestAlert()">发送测试到站通知</button>
+          <button id="btnKeepAlive" class="chip-btn" onclick="window.AppUI.openBatteryKeepAlive()">省电白名单（仅需点一次）</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div style="margin-bottom:8px;">
+          <div style="font-size:0.94rem;font-weight:800;">常用站点与线路管理</div>
+        </div>
+        <div id="manageFavBox"></div>
+      </div>
+
+      <div class="card">
+        <div style="font-size:0.94rem;font-weight:800;margin-bottom:8px;">数据来源与通道说明</div>
+        <div style="font-size:0.77rem;color:var(--text-sub);line-height:1.68;word-break:break-all;">
+          <div style="margin-bottom:8px;">
+            <span class="dot dot-sky"></span><strong>全国实时公交数据源</strong>：接入车来了全国 486 城实时公交网关，同步全线车载 GPS 实时站序、到站距离与预计分钟数；每条常用路线独立保存所属城市编码（<code>cityId</code>），内置双授权通道（<code>webapp_alipay_fuwu</code> / <code>webapp_meizu_map</code>）自动容灾切换。<br/>
+            • 实时公交接口：<code>https://web.chelaile.net.cn/api/</code><br/>
+            • 全国城市目录：<code>https://web.chelaile.net.cn/wwd/ncitylist</code>
+          </div>
+          <div>
+            <span class="dot dot-mint"></span><strong>跨城定位与地理编码</strong>：Android 原生 <code>LocationManager</code> + <code>Geocoder</code>（含 WGS-84 转 GCJ-02 国测局火星坐标校准、GPS 自动识别所在城市）及和风天气全国 GeoAPI 兜底。<br/>
+            • 地理编码接口：<code>https://mk487vpakf.re.qweatherapi.com/geo/v2/city/lookup</code>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 全线动态站牌轴抽屉弹窗 -->
+  <div id="lineModalMask" class="modal-mask" onclick="if(event.target===this)window.DetailMod.closeLineDetailModal()">
+    <div class="modal-sheet">
+      <div class="sheet-header">
+        <div style="flex:1;min-width:0;">
+          <div id="lineSheetTitle" style="font-size:1.02rem;font-weight:900;">线路详情</div>
+          <div id="lineSheetSub" style="font-size:0.73rem;color:var(--text-muted);margin-top:2px;">实时信号同步中</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <button class="text-btn" onclick="window.DetailMod.refreshLineDetailModal(true)">刷新</button>
+          <button class="close-fixed-btn" onclick="window.DetailMod.closeLineDetailModal()">✕</button>
+        </div>
+      </div>
+      <div id="lineSheetBody" class="sheet-body"></div>
+    </div>
+  </div>
+
+  <!-- 辅助弹窗（同站线路 / 首站时刻表 / 定位切换） -->
+  <div id="auxModalMask" class="modal-mask" style="z-index:970;" onclick="if(event.target===this)window.DetailMod.closeAuxSheet()">
+    <div class="modal-sheet" style="max-height:76vh;">
+      <div class="sheet-header">
+        <div id="auxSheetTitle" style="font-size:0.96rem;font-weight:900;">详情</div>
+        <button class="close-fixed-btn" onclick="window.DetailMod.closeAuxSheet()">✕</button>
+      </div>
+      <div id="auxSheetBody" class="sheet-body"></div>
+    </div>
+  </div>
+
+  <!-- 2秒自动关闭轻提示（固定统一关闭按钮尺寸） -->
+  <div id="toastBar" class="toast-bar">
+    <span id="toastText">已更新</span>
+    <button class="toast-close" onclick="window.AppUI.hideToast()">✕</button>
+  </div>
+
+  <!-- 底部紧凑悬浮双栏导航 -->
+  <nav class="bottom-nav">
+    <div id="tabHome" class="nav-tab active" onclick="window.AppUI.switchMainPage('home')">主页</div>
+    <div id="tabSettings" class="nav-tab" onclick="window.AppUI.switchMainPage('settings')">设置</div>
+  </nav>
+
+<script>
+// 申城实时公交 - 默认常驻配置、状态持久化与原生桥接通信层
+(function () {
+  const STORAGE_KEY = "sh_bus_radar_v3_state";
+
+  // 默认初始城市与定位中心（支持切换全国 480+ 城市，每条常用路线独立保存所属 cityId）
+  const DEFAULT_CITY = {
+    cityId: "034",
+    cityName: "上海"
+  };
+
+  const DEFAULT_LOCATION = {
+    name: "静安区陕西北路",
+    lat: 31.2335,
+    lng: 121.4542,
+    isGcj: false
+  };
+
+  // 不预先内置任何常用看板站点，由用户自行按站点添加
+  const DEFAULT_FAVORITES = [];
+
+  const HOT_CITIES = [
+    { cityId: "034", cityName: "上海", pinyin: "shanghai", spotName: "静安区陕西北路", lat: 31.2335, lng: 121.4542 },
+    { cityId: "027", cityName: "北京", pinyin: "beijing", spotName: "东城区王府井", lat: 39.9139, lng: 116.4117 },
+    { cityId: "004", cityName: "杭州", pinyin: "hangzhou", spotName: "西湖区延安路", lat: 30.2592, lng: 120.1653 },
+    { cityId: "011", cityName: "苏州", pinyin: "suzhou", spotName: "姑苏区观前街", lat: 31.3127, lng: 120.6258 },
+    { cityId: "018", cityName: "南京", pinyin: "nanjing", spotName: "秦淮区新街口", lat: 32.0415, lng: 118.7841 },
+    { cityId: "040", cityName: "广州", pinyin: "guangzhou", spotName: "天河区体育西路", lat: 23.1317, lng: 113.3214 },
+    { cityId: "007", cityName: "成都", pinyin: "chengdu", spotName: "锦江区春熙路", lat: 30.6562, lng: 104.0818 },
+    { cityId: "000", cityName: "武汉", pinyin: "wuhan", spotName: "江汉区江汉路", lat: 30.5792, lng: 114.2877 },
+    { cityId: "003", cityName: "重庆", pinyin: "chongqing", spotName: "渝中区解放碑", lat: 29.5573, lng: 106.5771 },
+    { cityId: "054", cityName: "无锡", pinyin: "wuxi", spotName: "梁溪区三阳广场", lat: 31.5762, lng: 120.3014 },
+    { cityId: "045", cityName: "宁波", pinyin: "ningbo", spotName: "海曙区天一广场", lat: 29.8732, lng: 121.5518 },
+    { cityId: "076", cityName: "西安", pinyin: "xian", spotName: "碑林区钟楼", lat: 34.2594, lng: 108.9470 },
+    { cityId: "066", cityName: "长沙", pinyin: "changsha", spotName: "芙蓉区五一广场", lat: 28.1953, lng: 112.9764 },
+    { cityId: "009", cityName: "青岛", pinyin: "qingdao", spotName: "市南区五四广场", lat: 36.0642, lng: 120.3826 },
+    { cityId: "006", cityName: "天津", pinyin: "tianjin", spotName: "和平区滨江道", lat: 39.1235, lng: 117.1981 },
+    { cityId: "028", cityName: "合肥", pinyin: "hefei", spotName: "庐阳区淮河路步行街", lat: 31.8669, lng: 117.2892 },
+    { cityId: "015", cityName: "郑州", pinyin: "zhengzhou", spotName: "二七区二七广场", lat: 34.7524, lng: 113.6654 },
+    { cityId: "020", cityName: "福州", pinyin: "fuzhou", spotName: "鼓楼区东街口", lat: 26.0829, lng: 119.3001 },
+    { cityId: "012", cityName: "济南", pinyin: "jinan", spotName: "历下区泉城广场", lat: 36.6612, lng: 117.0207 },
+    { cityId: "022", cityName: "南昌", pinyin: "nanchang", spotName: "东湖区八一广场", lat: 28.6744, lng: 115.9042 }
+  ];
+
+  const SHANGHAI_PRESET_SPOTS = [
+    { name: "静安区陕西北路", lat: 31.2335, lng: 121.4542, isGcj: false },
+    { name: "静安寺", lat: 31.2238, lng: 121.4458, isGcj: false },
+    { name: "人民广场", lat: 31.2304, lng: 121.4737, isGcj: false },
+    { name: "徐家汇", lat: 31.1947, lng: 121.4379, isGcj: false },
+    { name: "陆家嘴", lat: 31.2397, lng: 121.4998, isGcj: false }
+  ];
+
+  function loadState() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        return {
+          city: parsed.city && parsed.city.cityId ? parsed.city : { ...DEFAULT_CITY },
+          location: parsed.location || { ...DEFAULT_LOCATION },
+          favorites: Array.isArray(parsed.favorites) ? parsed.favorites : [],
+          settings: Object.assign({
+            alertStops: 2,
+            alertMinutes: 3,
+            autoRefreshSec: 15,
+            nightDnd: true,
+            themeMode: "auto" // auto | light | night
+          }, parsed.settings || {})
+        };
+      }
+    } catch (e) {}
+    return {
+      city: { ...DEFAULT_CITY },
+      location: { ...DEFAULT_LOCATION },
+      favorites: DEFAULT_FAVORITES.map(x => ({ ...x })),
+      settings: {
+        alertStops: 2,
+        alertMinutes: 3,
+        autoRefreshSec: 15,
+        nightDnd: true,
+        themeMode: "auto"
+      }
+    };
+  }
+
+  function saveState(st) {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        city: st.city,
+        location: st.location,
+        favorites: st.favorites,
+        settings: st.settings
+      }));
+    } catch (e) {}
+  }
+
+  // Native Bridge Async Promise Dispatcher
+  let seq = 1;
+  const pendingCalls = {};
+
+  window.__onNativeApiCallback = function (reqId, resStr) {
+    const entry = pendingCalls[reqId];
+    if (!entry) return;
+    delete pendingCalls[reqId];
+    clearTimeout(entry.timer);
+    try {
+      entry.resolve(JSON.parse(resStr));
+    } catch (e) {
+      entry.resolve({ ok: false, error: "数据解析异常" });
+    }
+  };
+
+  function callBusApi(action, payload) {
+    return new Promise((resolve) => {
+      const reqObj = Object.assign({}, payload || {});
+      if (!reqObj.cityId && window.AppUI && typeof window.AppUI.getState === "function") {
+        const st = window.AppUI.getState();
+        if (st && st.city && st.city.cityId) {
+          reqObj.cityId = st.city.cityId;
+        }
+        if (!reqObj.cityName && st && st.city && st.city.cityName) {
+          reqObj.cityName = st.city.cityName;
+        }
+      }
+      if (window.AndroidBridge && typeof window.AndroidBridge.callBusApiAsync === "function") {
+        const reqId = "req_" + (seq++) + "_" + Date.now();
+        const timer = setTimeout(() => {
+          if (pendingCalls[reqId]) {
+            delete pendingCalls[reqId];
+            resolve({ ok: false, error: "请求超时，请检查网络" });
+          }
+        }, 9500);
+        pendingCalls[reqId] = { resolve, timer };
+        window.AndroidBridge.callBusApiAsync(reqId, action, JSON.stringify(reqObj));
+      } else {
+        resolve(buildBrowserPreviewFallback(action, reqObj));
+      }
+    });
+  }
+
+  function buildBrowserPreviewFallback(action, req) {
+    if (action === "lineDetail") {
+      const lid = req.lineId || "21283604817";
+      const map = {
+        "21283604817": {
+          line: { lineId: "21283604817", lineNo: "r96669", name: "24", direction: 1, startSn: "长寿新村", endSn: "豆市街复兴东路", firstTime: "05:00", lastTime: "23:20", price: "2元" },
+          otherlines: [{ lineId: "21283604816" }],
+          stations: [
+            { order: 1, sId: "021-1825", sn: "长寿新村", metros: [{ lineNo: "13" }, { lineNo: "7" }] },
+            { order: 2, sId: "021-10", sn: "宜昌路西康路", metros: [{ lineNo: "3" }, { lineNo: "4" }, { lineNo: "7" }] },
+            { order: 3, sId: "021-17138", sn: "陕西北路宜昌路", metros: [] },
+            { order: 4, sId: "021-17139", sn: "陕西北路普陀路", metros: [{ lineNo: "13" }, { lineNo: "7" }] },
+            { order: 5, sId: "021-8330", sn: "陕西北路安远路", metros: [{ lineNo: "13" }, { lineNo: "7" }] },
+            { order: 6, sId: "021-5890", sn: "陕西北路海防路", metros: [] },
+            { order: 7, sId: "021-8560", sn: "陕西北路新闸路", metros: [] },
+            { order: 8, sId: "021-5707", sn: "陕西北路北京西路", metros: [] },
+            { order: 9, sId: "021-3732", sn: "陕西北路南京西路", metros: [{ lineNo: "12" }, { lineNo: "13" }, { lineNo: "2" }] },
+            { order: 10, sId: "021-5873", sn: "陕西南路延安中路", metros: [] },
+            { order: 11, sId: "021-6133", sn: "陕西南路淮海中路", metros: [{ lineNo: "10" }, { lineNo: "12" }, { lineNo: "1" }] },
+            { order: 12, sId: "021-729", sn: "陕西南路永嘉路", metros: [{ lineNo: "10" }] },
+            { order: 13, sId: "021-7113", sn: "建国西路陕西南路", metros: [] },
+            { order: 14, sId: "021-2577", sn: "建国中路瑞金二路", metros: [{ lineNo: "9" }] },
+            { order: 15, sId: "021-3769", sn: "建国东路重庆南路", metros: [{ lineNo: "13" }, { lineNo: "9" }] },
+            { order: 16, sId: "021-5704", sn: "建国东路肇周路", metros: [] },
+            { order: 17, sId: "021-5189", sn: "建国新路西藏南路", metros: [{ lineNo: "10" }, { lineNo: "8" }, { lineNo: "9" }] },
+            { order: 18, sId: "021-15452", sn: "老西门（复兴东路）", metros: [{ lineNo: "10" }, { lineNo: "8" }] },
+            { order: 19, sId: "021-15496", sn: "复兴东路光启路（豫园）", metros: [] },
+            { order: 20, sId: "021-6414", sn: "豆市街复兴东路", metros: [] }
+          ],
+          buses: [
+            { busId: "b24_1", order: 8, specialOrder: 8, state: 0, distanceToWaitStn: 420, travels: [{ order: 9, travelTime: 135 }] },
+            { busId: "b24_2", order: 5, specialOrder: 5, state: 1, distanceToWaitStn: 1680, travels: [{ order: 9, travelTime: 540 }] }
+          ]
+        },
+        "21283604816": {
+          line: { lineId: "21283604816", lineNo: "r96669", name: "24", direction: 0, startSn: "豆市街复兴东路", endSn: "长寿新村", firstTime: "05:00", lastTime: "23:00", price: "2元" },
+          otherlines: [{ lineId: "21283604817" }],
+          stations: [
+            { order: 1, sId: "021-6414", sn: "豆市街复兴东路", metros: [] },
+            { order: 2, sId: "021-15496", sn: "复兴东路光启路（豫园）", metros: [] },
+            { order: 3, sId: "021-15452", sn: "老西门（复兴东路）", metros: [{ lineNo: "10" }, { lineNo: "8" }] },
+            { order: 4, sId: "021-2435", sn: "复兴中路吉安路", metros: [{ lineNo: "10" }, { lineNo: "8" }] },
+            { order: 5, sId: "021-8022", sn: "复兴中路黄陂南路", metros: [{ lineNo: "10" }, { lineNo: "13" }] },
+            { order: 6, sId: "021-8218", sn: "复兴中路重庆南路", metros: [{ lineNo: "10" }, { lineNo: "13" }] },
+            { order: 7, sId: "021-5494", sn: "瑞金二路复兴中路", metros: [] },
+            { order: 8, sId: "021-7867", sn: "瑞金一路淮海中路", metros: [{ lineNo: "13" }, { lineNo: "1" }] },
+            { order: 9, sId: "021-5386", sn: "瑞金一路延安中路", metros: [{ lineNo: "13" }] },
+            { order: 10, sId: "021-5006", sn: "石门一路南京西路", metros: [{ lineNo: "12" }, { lineNo: "13" }, { lineNo: "2" }] },
+            { order: 11, sId: "021-3466", sn: "南京西路陕西北路", metros: [] },
+            { order: 12, sId: "021-2506", sn: "西康路新闸路", metros: [] },
+            { order: 13, sId: "021-8373", sn: "西康路康定路", metros: [{ lineNo: "7" }] },
+            { order: 14, sId: "021-8284", sn: "西康路海防路", metros: [] },
+            { order: 15, sId: "021-6968", sn: "西康路长寿路", metros: [{ lineNo: "13" }, { lineNo: "7" }] },
+            { order: 16, sId: "021-6859", sn: "澳门路常德路", metros: [{ lineNo: "13" }, { lineNo: "7" }] },
+            { order: 17, sId: "021-1825", sn: "长寿新村", metros: [{ lineNo: "13" }, { lineNo: "7" }] }
+          ],
+          buses: [
+            { busId: "b24_r1", order: 10, specialOrder: 10, state: 0, distanceToWaitStn: 680, travels: [{ order: 11, travelTime: 240 }] },
+            { busId: "b24_r2", order: 7, specialOrder: 7, state: 1, distanceToWaitStn: 2450, travels: [{ order: 11, travelTime: 780 }] }
+          ]
+        },
+        "21283605072": {
+          line: { lineId: "21283605072", lineNo: "r96799", name: "20", direction: 0, startSn: "汉口路四川中路", endSn: "中山公园（万航渡路）", firstTime: "05:00", lastTime: "23:30", price: "2元" },
+          otherlines: [{ lineId: "21283605071" }],
+          stations: [
+            { order: 1, sId: "021-5531", sn: "汉口路四川中路", metros: [{ lineNo: "10" }, { lineNo: "2" }] },
+            { order: 2, sId: "021-5872", sn: "九江路江西中路", metros: [{ lineNo: "10" }, { lineNo: "2" }] },
+            { order: 3, sId: "021-3498", sn: "九江路福建中路", metros: [{ lineNo: "10" }, { lineNo: "2" }] },
+            { order: 4, sId: "021-6729", sn: "九江路黄河路", metros: [{ lineNo: "1" }, { lineNo: "2" }, { lineNo: "8" }] },
+            { order: 5, sId: "021-8699", sn: "南京西路黄河路", metros: [{ lineNo: "1" }, { lineNo: "2" }, { lineNo: "8" }] },
+            { order: 6, sId: "021-955", sn: "南京西路成都北路", metros: [{ lineNo: "2" }] },
+            { order: 7, sId: "021-4384", sn: "上海电视台", metros: [{ lineNo: "12" }, { lineNo: "13" }, { lineNo: "2" }] },
+            { order: 8, sId: "021-7830", sn: "南京西路石门一路", metros: [{ lineNo: "12" }, { lineNo: "13" }, { lineNo: "2" }] },
+            { order: 9, sId: "021-3466", sn: "南京西路陕西北路", metros: [] },
+            { order: 10, sId: "021-2076", sn: "静安寺", metros: [{ lineNo: "14" }, { lineNo: "2" }, { lineNo: "7" }] },
+            { order: 11, sId: "021-1102", sn: "北京西路乌鲁木齐北路", metros: [{ lineNo: "14" }, { lineNo: "2" }] },
+            { order: 12, sId: "021-3235", sn: "愚园路乌鲁木齐北路", metros: [{ lineNo: "14" }] },
+            { order: 13, sId: "021-3894", sn: "愚园路镇宁路", metros: [{ lineNo: "11" }, { lineNo: "2" }] },
+            { order: 14, sId: "021-3628", sn: "愚园路江苏路", metros: [{ lineNo: "11" }, { lineNo: "2" }] },
+            { order: 15, sId: "021-5015", sn: "愚园路安西路", metros: [{ lineNo: "11" }] },
+            { order: 16, sId: "021-4577", sn: "愚园路定西路", metros: [{ lineNo: "2" }] },
+            { order: 17, sId: "021-15448", sn: "中山公园（长宁路）", metros: [{ lineNo: "2" }, { lineNo: "3" }, { lineNo: "4" }] },
+            { order: 18, sId: "021-401", sn: "凯旋路汇川路", metros: [{ lineNo: "2" }, { lineNo: "3" }, { lineNo: "4" }] },
+            { order: 19, sId: "021-15449", sn: "中山公园（万航渡路）", metros: [] }
+          ],
+          buses: [
+            { busId: "b20_1", order: 9, specialOrder: 9, state: 1, distanceToWaitStn: 35, travels: [{ order: 9, travelTime: 20 }] },
+            { busId: "b20_2", order: 6, specialOrder: 6, state: 0, distanceToWaitStn: 1520, travels: [{ order: 9, travelTime: 420 }] }
+          ]
+        },
+        "21283605071": {
+          line: { lineId: "21283605071", lineNo: "r96799", name: "20", direction: 1, startSn: "中山公园（万航渡路）", endSn: "汉口路四川中路", firstTime: "05:00", lastTime: "23:15", price: "2元" },
+          otherlines: [{ lineId: "21283605072" }],
+          stations: [
+            { order: 1, sId: "021-15449", sn: "中山公园（万航渡路）", metros: [] },
+            { order: 2, sId: "021-11102", sn: "华阳路长宁路", metros: [] },
+            { order: 3, sId: "021-5015", sn: "愚园路安西路", metros: [{ lineNo: "11" }] },
+            { order: 4, sId: "021-3628", sn: "愚园路江苏路", metros: [{ lineNo: "11" }, { lineNo: "2" }] },
+            { order: 5, sId: "021-3894", sn: "愚园路镇宁路", metros: [{ lineNo: "2" }] },
+            { order: 6, sId: "021-3235", sn: "愚园路乌鲁木齐北路", metros: [{ lineNo: "14" }] },
+            { order: 7, sId: "021-2076", sn: "静安寺", metros: [{ lineNo: "14" }, { lineNo: "2" }, { lineNo: "7" }] },
+            { order: 8, sId: "021-3466", sn: "南京西路陕西北路", metros: [] },
+            { order: 9, sId: "021-4384", sn: "上海电视台", metros: [{ lineNo: "12" }, { lineNo: "13" }, { lineNo: "2" }] },
+            { order: 10, sId: "021-955", sn: "南京西路成都北路", metros: [{ lineNo: "13" }] },
+            { order: 11, sId: "021-8699", sn: "南京西路黄河路", metros: [{ lineNo: "1" }, { lineNo: "2" }, { lineNo: "8" }] },
+            { order: 12, sId: "021-5667", sn: "九江路浙江中路", metros: [{ lineNo: "1" }, { lineNo: "8" }] },
+            { order: 13, sId: "021-5531", sn: "汉口路四川中路", metros: [{ lineNo: "10" }, { lineNo: "2" }] }
+          ],
+          buses: [
+            { busId: "b20_r1", order: 7, specialOrder: 7, state: 0, distanceToWaitStn: 510, travels: [{ order: 8, travelTime: 180 }] }
+          ]
+        },
+        "21283604206": {
+          line: { lineId: "21283604206", lineNo: "r96353", name: "41", direction: 1, startSn: "沪太新村", endSn: "龙恒东路龙华西路", firstTime: "05:00", lastTime: "23:10", price: "2元" },
+          otherlines: [{ lineId: "21283604205" }],
+          stations: [
+            { order: 1, sId: "021-4425", sn: "沪太新村", metros: [] },
+            { order: 2, sId: "021-1985", sn: "宜川路延长西路", metros: [] },
+            { order: 3, sId: "021-5061", sn: "延长西路沪太路", metros: [] },
+            { order: 4, sId: "021-145", sn: "沪太路华阴路", metros: [] },
+            { order: 5, sId: "021-7336", sn: "沪太路中山北路", metros: [] },
+            { order: 6, sId: "021-15410", sn: "恒丰路天目西路（上海火车站）", metros: [{ lineNo: "1" }] },
+            { order: 7, sId: "021-4490", sn: "恒丰路汉中路", metros: [{ lineNo: "12" }, { lineNo: "13" }, { lineNo: "1" }] },
+            { order: 8, sId: "021-200", sn: "石门二路山海关路", metros: [{ lineNo: "13" }, { lineNo: "2" }] },
+            { order: 9, sId: "021-4420", sn: "北京西路泰兴路", metros: [{ lineNo: "12" }, { lineNo: "13" }, { lineNo: "2" }] },
+            { order: 10, sId: "021-3732", sn: "陕西北路南京西路", metros: [{ lineNo: "12" }] },
+            { order: 11, sId: "021-5873", sn: "陕西南路延安中路", metros: [] },
+            { order: 12, sId: "021-6133", sn: "陕西南路淮海中路", metros: [{ lineNo: "10" }, { lineNo: "12" }, { lineNo: "1" }] },
+            { order: 13, sId: "021-729", sn: "陕西南路永嘉路", metros: [{ lineNo: "10" }] },
+            { order: 14, sId: "021-1161", sn: "陕西南路建国西路", metros: [{ lineNo: "12" }, { lineNo: "9" }] },
+            { order: 15, sId: "021-3812", sn: "肇嘉浜路大木桥路", metros: [{ lineNo: "12" }, { lineNo: "9" }] },
+            { order: 16, sId: "021-3635", sn: "瑞金南路斜土路", metros: [{ lineNo: "9" }] },
+            { order: 17, sId: "021-2545", sn: "瑞金南路瞿溪路", metros: [] },
+            { order: 18, sId: "021-791", sn: "中山南二路大木桥路", metros: [{ lineNo: "12" }, { lineNo: "4" }] },
+            { order: 19, sId: "021-3406", sn: "中山南二路东安路", metros: [{ lineNo: "12" }, { lineNo: "4" }, { lineNo: "7" }] },
+            { order: 20, sId: "021-8705", sn: "龙华路宛平南路", metros: [{ lineNo: "12" }, { lineNo: "7" }] },
+            { order: 21, sId: "021-2175", sn: "龙华路华容路", metros: [{ lineNo: "11" }, { lineNo: "12" }] },
+            { order: 22, sId: "021-24275", sn: "龙恒东路龙华西路", metros: [{ lineNo: "11" }, { lineNo: "12" }] }
+          ],
+          buses: [
+            { busId: "b41_1", order: 8, specialOrder: 8, state: 0, distanceToWaitStn: 720, travels: [{ order: 10, travelTime: 240 }] },
+            { busId: "b41_2", order: 5, specialOrder: 5, state: 1, distanceToWaitStn: 2100, travels: [{ order: 10, travelTime: 660 }] }
+          ]
+        },
+        "21283604205": {
+          line: { lineId: "21283604205", lineNo: "r96353", name: "41", direction: 0, startSn: "龙恒东路龙华西路", endSn: "沪太新村", firstTime: "05:00", lastTime: "23:10", price: "2元" },
+          otherlines: [{ lineId: "21283604206" }],
+          stations: [
+            { order: 1, sId: "021-24275", sn: "龙恒东路龙华西路", metros: [{ lineNo: "11" }, { lineNo: "12" }] },
+            { order: 2, sId: "021-8283", sn: "龙华", metros: [{ lineNo: "11" }, { lineNo: "12" }] },
+            { order: 3, sId: "021-2175", sn: "龙华路华容路", metros: [{ lineNo: "12" }] },
+            { order: 4, sId: "021-7746", sn: "宛平南路龙华路", metros: [{ lineNo: "12" }, { lineNo: "7" }] },
+            { order: 5, sId: "021-3406", sn: "中山南二路东安路", metros: [{ lineNo: "12" }, { lineNo: "4" }, { lineNo: "7" }] },
+            { order: 6, sId: "021-1458", sn: "中山南二路船厂路", metros: [] },
+            { order: 7, sId: "021-791", sn: "中山南二路大木桥路", metros: [{ lineNo: "12" }, { lineNo: "4" }] },
+            { order: 8, sId: "021-2545", sn: "瑞金南路瞿溪路", metros: [] },
+            { order: 9, sId: "021-917", sn: "打浦桥", metros: [{ lineNo: "9" }] },
+            { order: 10, sId: "021-1660", sn: "瑞金医院", metros: [{ lineNo: "9" }] },
+            { order: 11, sId: "021-5494", sn: "瑞金二路复兴中路", metros: [] },
+            { order: 12, sId: "021-7867", sn: "瑞金一路淮海中路", metros: [{ lineNo: "13" }, { lineNo: "1" }] },
+            { order: 13, sId: "021-3613", sn: "石门一路延安中路", metros: [{ lineNo: "12" }, { lineNo: "13" }] },
+            { order: 14, sId: "021-5006", sn: "石门一路南京西路", metros: [{ lineNo: "12" }, { lineNo: "13" }, { lineNo: "2" }] },
+            { order: 15, sId: "021-200", sn: "石门二路山海关路", metros: [{ lineNo: "13" }] },
+            { order: 16, sId: "021-4490", sn: "恒丰路汉中路", metros: [{ lineNo: "12" }, { lineNo: "13" }, { lineNo: "1" }] },
+            { order: 17, sId: "021-7336", sn: "沪太路中山北路", metros: [] },
+            { order: 18, sId: "021-6441", sn: "沪太路洛川中路", metros: [] },
+            { order: 19, sId: "021-1586", sn: "沪太路新村路", metros: [] },
+            { order: 20, sId: "021-4425", sn: "沪太新村", metros: [] }
+          ],
+          buses: [
+            { busId: "b41_r1", order: 12, specialOrder: 12, state: 0, distanceToWaitStn: 640, travels: [{ order: 14, travelTime: 220 }] }
+          ]
+        },
+        "21283604420": {
+          line: { lineId: "21283604420", lineNo: "r96463", name: "104", direction: 1, startSn: "上海火车站（南广场）", endSn: "龙华", firstTime: "05:00", lastTime: "23:15", price: "2元" },
+          otherlines: [{ lineId: "21283604421" }],
+          stations: [
+            { order: 1, sId: "021-15293", sn: "上海火车站（南广场）", metros: [{ lineNo: "1" }, { lineNo: "3" }, { lineNo: "4" }] },
+            { order: 2, sId: "021-4490", sn: "恒丰路汉中路", metros: [{ lineNo: "12" }, { lineNo: "13" }, { lineNo: "1" }] },
+            { order: 3, sId: "021-2972", sn: "新闸路泰兴路", metros: [{ lineNo: "13" }, { lineNo: "2" }] },
+            { order: 4, sId: "021-71", sn: "新闸路江宁路", metros: [] },
+            { order: 5, sId: "021-5707", sn: "陕西北路北京西路", metros: [] },
+            { order: 6, sId: "021-3732", sn: "陕西北路南京西路", metros: [{ lineNo: "12" }] },
+            { order: 7, sId: "021-5873", sn: "陕西南路延安中路", metros: [] },
+            { order: 8, sId: "021-6133", sn: "陕西南路淮海中路", metros: [{ lineNo: "1" }, { lineNo: "10" }, { lineNo: "12" }] },
+            { order: 9, sId: "021-729", sn: "陕西南路永嘉路", metros: [{ lineNo: "10" }] },
+            { order: 10, sId: "021-3812", sn: "肇嘉浜路大木桥路", metros: [{ lineNo: "12" }, { lineNo: "9" }] },
+            { order: 11, sId: "021-4922", sn: "小木桥路斜土路", metros: [] },
+            { order: 12, sId: "021-8753", sn: "小木桥路中山南二路", metros: [{ lineNo: "12" }, { lineNo: "4" }] },
+            { order: 13, sId: "021-3406", sn: "中山南二路东安路", metros: [{ lineNo: "12" }, { lineNo: "4" }, { lineNo: "7" }] },
+            { order: 14, sId: "021-7054", sn: "中山南二路宛平南路", metros: [] },
+            { order: 15, sId: "021-872", sn: "上海游泳馆", metros: [{ lineNo: "11" }, { lineNo: "3" }] },
+            { order: 16, sId: "021-8283", sn: "龙华", metros: [{ lineNo: "12" }] }
+          ],
+          buses: [
+            { busId: "b104_1", order: 4, specialOrder: 4, state: 0, distanceToWaitStn: 890, travels: [{ order: 6, travelTime: 300 }] }
+          ]
+        },
+        "21283604421": {
+          line: { lineId: "21283604421", lineNo: "r96463", name: "104", direction: 0, startSn: "龙华", endSn: "上海火车站（南广场）", firstTime: "05:00", lastTime: "23:15", price: "2元" },
+          otherlines: [{ lineId: "21283604420" }],
+          stations: [
+            { order: 1, sId: "021-8283", sn: "龙华", metros: [{ lineNo: "12" }] },
+            { order: 2, sId: "021-476", sn: "天钥桥路中山南二路", metros: [{ lineNo: "11" }] },
+            { order: 3, sId: "021-3406", sn: "中山南二路东安路", metros: [{ lineNo: "12" }, { lineNo: "4" }, { lineNo: "7" }] },
+            { order: 4, sId: "021-1458", sn: "中山南二路船厂路", metros: [] },
+            { order: 5, sId: "021-5566", sn: "大木桥路中山南二路", metros: [{ lineNo: "12" }, { lineNo: "4" }] },
+            { order: 6, sId: "021-4795", sn: "大木桥路斜土路", metros: [{ lineNo: "12" }, { lineNo: "4" }] },
+            { order: 7, sId: "021-3812", sn: "肇嘉浜路大木桥路", metros: [{ lineNo: "12" }, { lineNo: "9" }] },
+            { order: 8, sId: "021-1660", sn: "瑞金医院", metros: [{ lineNo: "9" }] },
+            { order: 9, sId: "021-7867", sn: "瑞金一路淮海中路", metros: [{ lineNo: "13" }, { lineNo: "1" }] },
+            { order: 10, sId: "021-3613", sn: "石门一路延安中路", metros: [{ lineNo: "12" }, { lineNo: "13" }] },
+            { order: 11, sId: "021-200", sn: "石门二路山海关路", metros: [{ lineNo: "13" }] },
+            { order: 12, sId: "021-4490", sn: "恒丰路汉中路", metros: [{ lineNo: "12" }, { lineNo: "13" }, { lineNo: "1" }] },
+            { order: 13, sId: "021-15293", sn: "上海火车站（南广场）", metros: [{ lineNo: "1" }, { lineNo: "3" }, { lineNo: "4" }] }
+          ],
+          buses: [
+            { busId: "b104_r1", order: 9, specialOrder: 9, state: 0, distanceToWaitStn: 480, travels: [{ order: 10, travelTime: 180 }] }
+          ]
+        },
+        "21283604093": {
+          line: { lineId: "21283604093", lineNo: "r96294", name: "206", direction: 0, startSn: "西康路南京西路", endSn: "临汾路阳泉路（彭浦新村）", firstTime: "05:05", lastTime: "22:30", price: "2元" },
+          otherlines: [{ lineId: "21283604094" }],
+          stations: [
+            { order: 1, sId: "021-8966", sn: "西康路南京西路", metros: [] },
+            { order: 2, sId: "021-2506", sn: "西康路新闸路", metros: [] },
+            { order: 3, sId: "021-8374", sn: "江宁路海防路", metros: [] }
+          ],
+          buses: [
+            { busId: "b206_1", order: 1, specialOrder: 1, state: 0, distanceToWaitStn: 310, travels: [{ order: 1, travelTime: 180 }] }
+          ]
+        },
+        "21283604966": {
+          line: { lineId: "21283604966", lineNo: "r96745", name: "37", direction: 0, startSn: "扬州路齐齐哈尔路", endSn: "愚园路胶州路", firstTime: "05:30", lastTime: "23:00", price: "2元" },
+          otherlines: [{ lineId: "21283604967" }],
+          stations: [
+            { order: 15, sId: "021-7830", sn: "南京西路石门一路", metros: [{ lineNo: "2" }, { lineNo: "12" }, { lineNo: "13" }] },
+            { order: 16, sId: "021-3466", sn: "南京西路陕西北路", metros: [] },
+            { order: 17, sId: "021-2076", sn: "静安寺", metros: [{ lineNo: "2" }, { lineNo: "7" }] }
+          ],
+          buses: [
+            { busId: "b37_1", order: 14, specialOrder: 14, state: 0, distanceToWaitStn: 980, travels: [{ order: 16, travelTime: 310 }] }
+          ]
+        }
+      };
+      return { ok: true, data: map[lid] || map["21283604817"] };
+    }
+    if (action === "nearlines") {
+      return {
+        ok: true,
+        data: {
+          nearLines: [
+            {
+              sn: "陕西北路南京西路", sId: "021-3732", distance: 86,
+              lines: [
+                { line: { lineId: "21283604817", name: "24", endSn: "豆市街复兴东路" }, stnStates: [{ value: 1, travelTime: 135, distanceToDest: 420 }] },
+                { line: { lineId: "21283604120", name: "104", endSn: "上海火车站（南广场）" }, stnStates: [{ value: 2, travelTime: 300, distanceToDest: 920 }] }
+              ]
+            },
+            {
+              sn: "南京西路陕西北路", sId: "021-3466", distance: 142,
+              lines: [
+                { line: { lineId: "21283605072", name: "20", endSn: "中山公园（万航渡路）" }, stnStates: [{ value: 0, travelTime: 25, distanceToDest: 35 }] },
+                { line: { lineId: "21283604816", name: "24", endSn: "长寿新村" }, stnStates: [{ value: 1, travelTime: 240, distanceToDest: 680 }] },
+                { line: { lineId: "21283604966", name: "37", endSn: "愚园路胶州路" }, stnStates: [{ value: 2, travelTime: 310, distanceToDest: 980 }] }
+              ]
+            }
+          ]
+        }
+      };
+    }
+    if (action === "timetable") {
+      return {
+        ok: true,
+        data: {
+          tip: "首站历史发车时刻表（仅供参考）",
+          timetable: [
+            { fTime: "06:00", eTime: "10:00", depIntervalTips: "7分钟/班", forecastDesc: "下一班预计 6 分钟后从首站发车", times: ["07:00", "07:07", "07:14", "07:21", "07:28", "07:35"] },
+            { fTime: "10:00", eTime: "16:30", depIntervalTips: "10分钟/班", times: ["10:00", "10:10", "10:20", "10:30", "10:40", "10:50"] }
+          ]
+        }
+      };
+    }
+    if (action === "stationDetail") {
+      const sid = req.stationId || "021-3732";
+      if (sid === "021-3732") {
+        return {
+          ok: true,
+          data: {
+            lines: [
+              { line: { lineId: "21283604817", lineNo: "r96669", direction: 1, name: "24", startSn: "长寿新村", endSn: "豆市街复兴东路" }, stnStates: [{ value: 1, travelTime: 135, distanceToDest: 420 }] },
+              { line: { lineId: "21283604206", lineNo: "r96353", direction: 1, name: "41", startSn: "沪太新村", endSn: "龙恒东路龙华西路" }, stnStates: [{ value: 2, travelTime: 240, distanceToDest: 720 }] },
+              { line: { lineId: "21283604420", lineNo: "r96463", direction: 1, name: "104", startSn: "上海火车站（南广场）", endSn: "龙华" }, stnStates: [{ value: 2, travelTime: 300, distanceToDest: 890 }] },
+              { line: { lineId: "21283603867", lineNo: "r96176", direction: 1, name: "23", startSn: "忻康里", endSn: "中山南一路西藏南路" }, stnStates: [{ value: 3, travelTime: 420, distanceToDest: 1350 }] },
+              { line: { lineId: "21283604572", lineNo: "r96541", direction: 1, name: "738", startSn: "陕西北路南京西路", endSn: "祁安路环镇南路" }, stnStates: [{ value: 0, travelTime: 40, distanceToDest: 50 }] }
+            ]
+          }
+        };
+      }
+      return {
+        ok: true,
+        data: {
+          lines: [
+            { line: { lineId: "21283605072", lineNo: "r96799", direction: 0, name: "20", startSn: "汉口路四川中路", endSn: "中山公园（万航渡路）" }, stnStates: [{ value: 0, travelTime: 25, distanceToDest: 35 }] },
+            { line: { lineId: "21283604816", lineNo: "r96669", direction: 0, name: "24", startSn: "豆市街复兴东路", endSn: "长寿新村" }, stnStates: [{ value: 1, travelTime: 240, distanceToDest: 680 }] },
+            { line: { lineId: "21283604966", lineNo: "r96745", direction: 0, name: "37", startSn: "扬州路齐齐哈尔路", endSn: "愚园路胶州路" }, stnStates: [{ value: 2, travelTime: 310, distanceToDest: 980 }] }
+          ]
+        }
+      };
+    }
+    if (action === "subwayStation") {
+      return {
+        ok: true,
+        data: {
+          sn: req.stationName || "南京西路",
+          sId: req.stationId || "12360",
+          operateTime: [
+            {
+              code: "2号线", color: "140,194,32",
+              times: [
+                { dirName: "开往 浦东1号2号航站楼", startTime: "05:58", endTime: "22:30" },
+                { dirName: "开往 国家会展中心", startTime: "05:39", endTime: "23:32" }
+              ]
+            },
+            {
+              code: "12号线", color: "1,121,96",
+              times: [
+                { dirName: "开往 七莘路", startTime: "06:13", endTime: "23:13" },
+                { dirName: "开往 金海路", startTime: "06:04", endTime: "23:04" }
+              ]
+            },
+            {
+              code: "13号线", color: "232,149,193",
+              times: [
+                { dirName: "开往 张江路", startTime: "06:04", endTime: "23:04" },
+                { dirName: "开往 金运路", startTime: "06:12", endTime: "23:12" }
+              ]
+            }
+          ]
+        }
+      };
+    }
+    if (action === "subwayLines") {
+      return {
+        ok: true,
+        data: {
+          l: [
+            { name: "2号线", lid: "310100025693", color: "140,194,32", st: [{ name: "中山公园", sid: "12362" }, { name: "江苏路", sid: "12363" }, { name: "静安寺", sid: "12361" }, { name: "南京西路", sid: "12360" }, { name: "人民广场", sid: "12329" }, { name: "南京东路", sid: "12358" }, { name: "陆家嘴", sid: "12357" }] },
+            { name: "12号线", lid: "310100025711", color: "1,121,96", st: [{ name: "嘉善路", sid: "12332" }, { name: "陕西南路", sid: "12331" }, { name: "南京西路", sid: "12360" }, { name: "汉中路", sid: "12327" }, { name: "曲阜路", sid: "12326" }] },
+            { name: "13号线", lid: "310100024524", color: "232,149,193", st: [{ name: "长寿路", sid: "12609" }, { name: "江宁路", sid: "12610" }, { name: "汉中路", sid: "12327" }, { name: "自然博物馆", sid: "12611" }, { name: "南京西路", sid: "12360" }, { name: "淮海中路", sid: "12612" }] },
+            { name: "7号线", lid: "310100024542", color: "243,112,32", st: [{ name: "镇坪路", sid: "12480" }, { name: "长寿路", sid: "12609" }, { name: "昌平路", sid: "12481" }, { name: "静安寺", sid: "12361" }, { name: "常熟路", sid: "12482" }] },
+            { name: "1号线", lid: "310100025685", color: "230,0,42", st: [{ name: "上海火车站", sid: "12328" }, { name: "汉中路", sid: "12327" }, { name: "新闸路", sid: "12330" }, { name: "人民广场", sid: "12329" }, { name: "一大会址·黄陂南路", sid: "12333" }, { name: "陕西南路", sid: "12331" }] }
+          ]
+        }
+      };
+    }
+    if (action === "cityList") {
+      return {
+        ok: true,
+        data: {
+          cityList: HOT_CITIES.map((c, i) => ({
+            cityId: c.cityId,
+            cityName: c.cityName,
+            pinyin: c.pinyin,
+            isHot: i < 12 ? 1 : 0,
+            isGpsCity: i === 0 ? 1 : 0
+          }))
+        }
+      };
+    }
+    return {
+      ok: true,
+      data: {
+        lines: [
+          { lineId: "21283604817", name: "24", startSn: "长寿新村", endSn: "豆市街复兴东路" },
+          { lineId: "21283604206", name: "41", startSn: "沪太新村", endSn: "龙恒东路龙华西路" },
+          { lineId: "21283604420", name: "104", startSn: "上海火车站（南广场）", endSn: "龙华" }
+        ],
+        stations: [
+          { sId: "021-3732", sn: "陕西北路南京西路" },
+          { sId: "021-3466", sn: "南京西路陕西北路" },
+          { sId: "021-8560", sn: "陕西北路新闸路" }
+        ]
+      }
+    };
+  }
+
+  function formatRouteDisplayName(name) {
+    if (!name) return "";
+    const s = String(name).trim();
+    if (/^\d+$/.test(s)) return s + "路";
+    return s;
+  }
+
+  function formatDistance(meters) {
+    if (meters === undefined || meters === null || meters < 0) return "";
+    if (meters >= 1000) return (meters / 1000).toFixed(1) + "公里";
+    return Math.round(meters) + "米";
+  }
+
+  // 从 encryptedLineDetail 返回的 buses 中计算距离 targetOrder 最近的两班车
+  function computeUpcomingBuses(buses, targetOrder) {
+    if (!Array.isArray(buses) || !targetOrder) return [];
+    const candidates = [];
+    for (let i = 0; i < buses.length; i++) {
+      const b = buses[i];
+      const bOrder = (b.specialOrder !== undefined && b.specialOrder > 0) ? b.specialOrder : b.order;
+      if (!bOrder || bOrder > targetOrder) continue;
+      const bState = Number(b.state || 0); // 1=已到站, 0=开往该站途中
+      let stopsAway = targetOrder - bOrder + (bState === 0 ? 1 : 0);
+      if (bOrder === targetOrder && bState === 1) stopsAway = 0;
+
+      let travelSec = -1;
+      if (Array.isArray(b.travels) && b.travels.length > 0 && b.travels[0].travelTime >= 0) {
+        travelSec = b.travels[0].travelTime;
+      }
+      const distM = (b.distanceToWaitStn !== undefined && b.distanceToWaitStn >= 0)
+        ? b.distanceToWaitStn : -1;
+      const effectiveSec = travelSec >= 0 ? travelSec : stopsAway * 150;
+
+      candidates.push({
+        busId: b.busId || "",
+        licence: b.licence || "",
+        order: bOrder,
+        state: bState,
+        stopsAway,
+        travelSec,
+        effectiveSec,
+        etaMin: Math.max(0, Math.round(effectiveSec / 60)),
+        distM
+      });
+    }
+    candidates.sort((a, b) => a.stopsAway - b.stopsAway || a.effectiveSec - b.effectiveSec);
+    return candidates;
+  }
+
+  window.BusStore = {
+    DEFAULT_CITY,
+    DEFAULT_LOCATION,
+    DEFAULT_FAVORITES,
+    HOT_CITIES,
+    SHANGHAI_PRESET_SPOTS,
+    loadState,
+    saveState,
+    callBusApi,
+    formatRouteDisplayName,
+    formatDistance,
+    computeUpcomingBuses
+  };
+})();
+
+// 申城实时公交 - 全线动态站牌轴、同站多线、发车时刻表与定位切换弹窗
+(function () {
+  const S = window.BusStore;
+
+  const detailCtx = {
+    open: false,
+    cityId: "034",
+    cityName: "上海",
+    lineId: "",
+    oppositeLineId: "",
+    lineNo: "",
+    lineName: "",
+    direction: "0",
+    startSn: "",
+    endSn: "",
+    firstTime: "",
+    lastTime: "",
+    price: "",
+    stationId: "",
+    stationName: "",
+    nextStationName: "",
+    targetOrder: 1,
+    stations: [],
+    buses: [],
+    depDesc: "",
+    lineDesc: ""
+  };
+
+  function esc(str) {
+    return String(str === undefined || str === null ? "" : str)
+      .replace(/&/g, "&amp;").replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  }
+
+  async function openLineDetailModal(params) {
+    window.AppUI.tick();
+    const curCity = (window.AppUI && window.AppUI.getState) ? window.AppUI.getState().city : { cityId: "034", cityName: "上海" };
+    detailCtx.open = true;
+    detailCtx.cityId = params.cityId || curCity.cityId || "034";
+    detailCtx.cityName = params.cityName || curCity.cityName || "上海";
+    detailCtx.lineId = params.lineId || "";
+    detailCtx.lineName = params.lineName || "";
+    detailCtx.direction = params.direction !== undefined ? String(params.direction) : "";
+    detailCtx.lineNo = params.lineNo || "";
+    detailCtx.stationId = params.stationId || "";
+    detailCtx.stationName = params.stationName || "";
+    detailCtx.nextStationName = params.nextStationName || "";
+    detailCtx.targetOrder = Number(params.targetOrder || 0);
+
+    document.getElementById("lineModalMask").classList.add("open");
+    document.getElementById("lineSheetTitle").textContent =
+      S.formatRouteDisplayName(detailCtx.lineName || "加载中");
+    document.getElementById("lineSheetSub").textContent = "正在同步全线实时车辆位置…";
+    document.getElementById("lineSheetBody").innerHTML =
+      '<div style="padding:28px 0;text-align:center;color:var(--text-muted);font-size:0.84rem;">正在连接实时公交信号…</div>';
+
+    await refreshLineDetailModal(false);
+  }
+
+  async function refreshLineDetailModal(manual) {
+    if (!detailCtx.open || !detailCtx.lineId) return;
+    if (manual) window.AppUI.tick();
+
+    const res = await S.callBusApi("lineDetail", {
+      cityId: detailCtx.cityId,
+      lineId: detailCtx.lineId,
+      lineName: detailCtx.lineName,
+      direction: detailCtx.direction,
+      stationName: detailCtx.stationName,
+      nextStationName: detailCtx.nextStationName,
+      lineNo: detailCtx.lineNo,
+      targetOrder: detailCtx.targetOrder > 0 ? String(detailCtx.targetOrder) : "",
+      stationId: detailCtx.stationId
+    });
+
+    if (!res.ok || !res.data) {
+      const safeErr = (window.AppUI && window.AppUI.formatSafeError) ? window.AppUI.formatSafeError(res.error) : "当前网络未连接";
+      document.getElementById("lineSheetSub").textContent = safeErr + " · 请检查网络后点击右上角刷新";
+      document.getElementById("lineSheetBody").innerHTML =
+        `<div class="card" style="padding:22px 14px;text-align:center;color:var(--text-muted);font-size:0.84rem;">${esc(safeErr)}，恢复联网后点击右上角「刷新」即可同步全线车况</div>`;
+      if (manual) window.AppUI.showToast(safeErr);
+      return;
+    }
+
+    const d = res.data;
+    const ln = d.line || {};
+    const sts = Array.isArray(d.stations) ? d.stations : [];
+    const other = Array.isArray(d.otherlines) ? d.otherlines : [];
+
+    detailCtx.lineName = ln.name || detailCtx.lineName;
+    detailCtx.lineNo = ln.lineNo || detailCtx.lineNo;
+    detailCtx.direction = ln.direction !== undefined ? String(ln.direction) : detailCtx.direction;
+    detailCtx.startSn = ln.startSn || "";
+    detailCtx.endSn = ln.endSn || "";
+    detailCtx.firstTime = ln.firstTime || "";
+    detailCtx.lastTime = ln.lastTime || "";
+    detailCtx.price = ln.price || "";
+    detailCtx.oppositeLineId = other.length > 0 ? (other[0].lineId || "") : "";
+    detailCtx.stations = sts;
+    detailCtx.buses = Array.isArray(d.buses) ? d.buses : [];
+    detailCtx.depDesc = d.depDesc || "";
+    detailCtx.lineDesc = ln.desc || "";
+
+    // 若尚未选定候车站或切向后需自动就近匹配当前定位/陕西北路
+    let matchedSt = null;
+    if (detailCtx.targetOrder > 0 && sts[detailCtx.targetOrder - 1] &&
+        (!detailCtx.stationName || sts[detailCtx.targetOrder - 1].sn === detailCtx.stationName)) {
+      matchedSt = sts[detailCtx.targetOrder - 1];
+    } else if (detailCtx.stationId) {
+      matchedSt = sts.find(s => s.sId === detailCtx.stationId);
+    }
+    if (!matchedSt && detailCtx.stationName) {
+      matchedSt = findReverseStationMatch(sts, detailCtx.stationName);
+    }
+    if (!matchedSt && sts.length > 0) {
+      matchedSt = pickNearestStopOnLine(sts);
+    }
+
+    if (matchedSt) {
+      const needRefetch = (detailCtx.targetOrder !== matchedSt.order || detailCtx.stationId !== matchedSt.sId);
+      detailCtx.targetOrder = matchedSt.order;
+      detailCtx.stationId = matchedSt.sId;
+      detailCtx.stationName = matchedSt.sn;
+      detailCtx.nextStationName = sts[matchedSt.order] ? sts[matchedSt.order].sn : "";
+      if (needRefetch && (!paramsHadValidTravels(detailCtx.buses, detailCtx.targetOrder))) {
+        const res2 = await S.callBusApi("lineDetail", {
+          cityId: detailCtx.cityId,
+          lineId: detailCtx.lineId,
+          lineName: detailCtx.lineName,
+          direction: detailCtx.direction,
+          stationName: detailCtx.stationName,
+          nextStationName: detailCtx.nextStationName,
+          lineNo: detailCtx.lineNo,
+          targetOrder: String(detailCtx.targetOrder),
+          stationId: detailCtx.stationId
+        });
+        if (res2.ok && res2.data && Array.isArray(res2.data.buses)) {
+          detailCtx.buses = res2.data.buses;
+          detailCtx.depDesc = res2.data.depDesc || detailCtx.depDesc;
+        }
+      }
+    }
+
+    renderLineDetailContent();
+    if (manual) window.AppUI.showToast("已刷新全线实时车况");
+  }
+
+  function paramsHadValidTravels(buses, order) {
+    if (!Array.isArray(buses) || buses.length === 0) return true;
+    return buses.some(b => Array.isArray(b.travels) && b.travels.some(t => t.order === order));
+  }
+
+  function findReverseStationMatch(sts, refName) {
+    if (!refName || !Array.isArray(sts) || sts.length === 0) return null;
+    const exact = sts.find(s => s.sn === refName);
+    if (exact) return exact;
+    // 提取路口路名关键词（如“陕西北路南京西路”->["陕西北路","南京西路"]，自动匹配反向“南京西路陕西北路”或“石门一路南京西路”）
+    const tokens = (refName.match(/[\u4e00-\u9fa5]{2,5}(?:路|街|寺|站|村|桥|园)/g) || []);
+    if (tokens.length > 0) {
+      let bestSt = null;
+      let bestScore = 0;
+      sts.forEach(s => {
+        let score = 0;
+        tokens.forEach(tk => {
+          if (s.sn && s.sn.indexOf(tk) >= 0) score += 2;
+          else if (s.sn && tk.length >= 3 && s.sn.indexOf(tk.slice(0, 2)) >= 0) score += 1;
+        });
+        if (score > bestScore) {
+          bestScore = score;
+          bestSt = s;
+        }
+      });
+      if (bestSt && bestScore >= 2) return bestSt;
+    }
+    return null;
+  }
+
+  function pickNearestStopOnLine(sts) {
+    const loc = window.AppUI.getState().location;
+    let best = sts[Math.floor(sts.length / 2)] || sts[0];
+    let bestDist = Infinity;
+    for (let i = 0; i < sts.length; i++) {
+      const s = sts[i];
+      const sLat = s.wgsLat && s.wgsLat > 1 ? s.wgsLat : s.lat;
+      const sLng = s.wgsLng && s.wgsLng > 1 ? s.wgsLng : s.lng;
+      if (!sLat || !sLng) continue;
+      const d = Math.hypot((sLat - loc.lat) * 111000, (sLng - loc.lng) * 95000);
+      if (d < bestDist) {
+        bestDist = d;
+        best = s;
+      }
+    }
+    return best;
+  }
+
+  function renderLineDetailContent() {
+    const routeTitle = S.formatRouteDisplayName(detailCtx.lineName);
+    document.getElementById("lineSheetTitle").textContent =
+      routeTitle + (detailCtx.endSn ? " → " + detailCtx.endSn : "");
+    const metaParts = [];
+    if (detailCtx.firstTime && detailCtx.lastTime) metaParts.push("首末班 " + detailCtx.firstTime + "-" + detailCtx.lastTime);
+    if (detailCtx.price) metaParts.push("票价 " + detailCtx.price);
+    metaParts.push("全线在途 " + detailCtx.buses.length + " 辆");
+    document.getElementById("lineSheetSub").textContent = metaParts.join(" · ");
+
+    const upcoming = S.computeUpcomingBuses(detailCtx.buses, detailCtx.targetOrder);
+    const favKey = detailCtx.cityId + "__" + detailCtx.lineId + "__" + detailCtx.stationId;
+    const isFav = window.AppUI.isFavoriteKey(favKey);
+    const watchState = window.AppUI.getWatchState();
+    const isWatchingThis = watchState.active && watchState.watchKey === favKey;
+
+    let etaHtml = "";
+    if (upcoming.length > 0) {
+      const b1 = upcoming[0];
+      const mainStr = (b1.stopsAway === 0 || (b1.travelSec >= 0 && b1.travelSec <= 45))
+        ? "即将进站"
+        : ("约 " + Math.max(1, b1.etaMin) + " 分钟");
+      const subStr = "距候车站「" + esc(detailCtx.stationName) + "」还有 " + b1.stopsAway + " 站" +
+        (b1.distM > 0 ? " · " + S.formatDistance(b1.distM) : "");
+      const secondStr = upcoming[1]
+        ? ("下班车：还有 " + upcoming[1].stopsAway + " 站 / 约 " + Math.max(1, upcoming[1].etaMin) + " 分钟")
+        : "后续班次等待首站发车";
+      etaHtml = `
+        <div class="card" style="padding:12px 14px;margin-bottom:10px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
+            <div>
+              <div style="font-size:0.75rem;color:var(--text-muted);">当前候车站（点击下方任意站可切换）</div>
+              <div style="font-size:0.96rem;font-weight:900;margin-top:2px;">${esc(detailCtx.stationName)}</div>
+              <div style="font-size:0.74rem;color:var(--text-sub);margin-top:3px;">${subStr}</div>
+              <div style="font-size:0.71rem;color:var(--text-muted);margin-top:2px;">${secondStr}</div>
+            </div>
+            <div style="text-align:right;flex-shrink:0;">
+              <div style="font-size:1.32rem;font-weight:900;color:var(--accent);">${mainStr}</div>
+            </div>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;padding-top:9px;border-top:1px solid var(--card-border);">
+            <button class="chip-btn ${isWatchingThis ? 'watching' : 'primary'}" onclick="window.DetailMod.toggleWatchFromDetail()">
+              ${isWatchingThis ? '盯梢提醒中 · 停止' : '到站震动盯梢'}
+            </button>
+            <button class="chip-btn" onclick="window.DetailMod.togglePinFromDetail()">
+              ${isFav ? '已存常用看板' : '+ 加入常用看板'}
+            </button>
+            ${detailCtx.oppositeLineId ? `<button class="chip-btn" onclick="window.DetailMod.flipDirection()">换向</button>` : ''}
+            <button class="chip-btn" onclick="window.DetailMod.openTimetableModal()">时刻表</button>
+            <button class="chip-btn" onclick="window.DetailMod.openSameStationModal('${esc(detailCtx.stationId)}','${esc(detailCtx.stationName)}','${esc(detailCtx.cityId)}','${esc(detailCtx.cityName)}')">本站全部线路</button>
+          </div>
+        </div>`;
+    } else {
+      const emptyTip = detailCtx.depDesc || detailCtx.lineDesc || "当前方向暂无已发车班次，请留意首站发车预测";
+      etaHtml = `
+        <div class="card" style="padding:12px 14px;margin-bottom:10px;">
+          <div style="font-size:0.92rem;font-weight:800;">候车站：${esc(detailCtx.stationName)}</div>
+          <div style="font-size:0.78rem;color:var(--text-muted);margin-top:4px;">${esc(emptyTip)}</div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;">
+            <button class="chip-btn ${isWatchingThis ? 'watching' : 'primary'}" onclick="window.DetailMod.toggleWatchFromDetail()">
+              ${isWatchingThis ? '盯梢中 · 停止' : '开启发车盯梢'}
+            </button>
+            <button class="chip-btn" onclick="window.DetailMod.togglePinFromDetail()">
+              ${isFav ? '已置顶看板' : '+ 置顶到首页'}
+            </button>
+            ${detailCtx.oppositeLineId ? `<button class="chip-btn" onclick="window.DetailMod.flipDirection()">换向</button>` : ''}
+            <button class="chip-btn" onclick="window.DetailMod.openTimetableModal()">时刻表</button>
+          </div>
+        </div>`;
+    }
+
+    // Group live buses by station order and state (state=1: arrived at station; state=0: on road between order-1 and order)
+    const arrivedMap = {};
+    const onRoadMap = {};
+    detailCtx.buses.forEach(b => {
+      const ord = (b.specialOrder && b.specialOrder > 0) ? b.specialOrder : b.order;
+      if (!ord) return;
+      if (Number(b.state) === 1) {
+        if (!arrivedMap[ord]) arrivedMap[ord] = [];
+        arrivedMap[ord].push(b);
+      } else {
+        if (!onRoadMap[ord]) onRoadMap[ord] = [];
+        onRoadMap[ord].push(b);
+      }
+    });
+
+    const metroColorMap = {
+      "1": "230,0,42", "2": "130,185,20", "3": "217,172,0", "4": "95,45,155",
+      "5": "148,77,154", "6": "216,21,115", "7": "235,105,25", "8": "0,152,212",
+      "9": "75,168,222", "10": "155,130,190", "11": "138,34,52", "12": "0,132,102",
+      "13": "224,108,162", "14": "115,112,38", "15": "168,142,98", "16": "45,168,148",
+      "17": "178,102,102", "18": "178,132,68"
+    };
+
+    function renderMiniBusSvg() {
+      return `<svg width="36" height="20" viewBox="0 0 36 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="2" y="2" width="31" height="14" rx="4" fill="#3B82F6"/>
+        <path d="M2 8H33V12C33 14.2 31.2 16 29 16H6C3.8 16 2 14.2 2 12V8Z" fill="#2563EB"/>
+        <rect x="5" y="4.2" width="6" height="4.8" rx="1.2" fill="#E0F2FE"/>
+        <rect x="13" y="4.2" width="6" height="4.8" rx="1.2" fill="#E0F2FE"/>
+        <rect x="21" y="4.2" width="5.5" height="4.8" rx="1.2" fill="#E0F2FE"/>
+        <path d="M28 4.2H31.2C32.2 4.2 33 5 33 6V9H28V4.2Z" fill="#BAE6FD"/>
+        <circle cx="32.2" cy="13.2" r="1.4" fill="#FACC15"/>
+        <circle cx="9" cy="16.2" r="2.8" fill="#334155"/>
+        <circle cx="9" cy="16.2" r="1.2" fill="#E2E8F0"/>
+        <circle cx="25" cy="16.2" r="2.8" fill="#334155"/>
+        <circle cx="25" cy="16.2" r="1.2" fill="#E2E8F0"/>
+      </svg>`;
+    }
+
+    function renderTargetSignSvg() {
+      return `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="2.5" y="2" width="11" height="7.5" rx="1.5" stroke="#FFFFFF" stroke-width="1.6"/>
+        <line x1="4.8" y1="4.8" x2="11.2" y2="4.8" stroke="#FEF08A" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="4.8" y1="7.2" x2="9.2" y2="7.2" stroke="#FFFFFF" stroke-width="1.3" stroke-linecap="round"/>
+        <line x1="8" y1="9.5" x2="8" y2="14.5" stroke="#FFFFFF" stroke-width="1.8" stroke-linecap="round"/>
+      </svg>`;
+    }
+
+    let listHtml = '<div class="timeline-list">';
+    detailCtx.stations.forEach((st, idx) => {
+      const isTarget = st.order === detailCtx.targetOrder;
+      const isAfterTarget = st.order > detailCtx.targetOrder;
+      const onRoadBuses = onRoadMap[st.order] || [];
+      const atStnBuses = arrivedMap[st.order] || [];
+      const isAmberSeg = (st.order === detailCtx.targetOrder) || onRoadBuses.length > 0;
+
+      const cls = isTarget
+        ? "stn-item target"
+        : (isAfterTarget ? "stn-item after-target" : "stn-item");
+
+      const metros = Array.isArray(st.metros) ? st.metros : [];
+      const metroBadges = metros.slice(0, 3).map(m => {
+        const no = String(m.lineNo || "").replace(/[^0-9]/g, "");
+        const rgb = m.color || metroColorMap[no] || "37,99,235";
+        const label = m.lineNo ? (m.lineNo + "号线") : (m.fullName || "").replace("地铁", "");
+        return `<span class="metro-pill" style="background:rgba(${rgb},0.15);color:rgb(${rgb});">${esc(label)}</span>`;
+      }).join("");
+
+      const segHtml = idx > 0
+        ? `<div class="stn-seg-line ${isAmberSeg ? 'seg-amber' : (isAfterTarget ? 'seg-after' : '')}"><span class="stn-seg-arrow">▾</span></div>`
+        : "";
+
+      const nodeHtml = isTarget
+        ? `<div class="stn-target-sign">${renderTargetSignSvg()}</div>`
+        : `<div class="stn-node ${isAmberSeg ? 'node-amber' : (isAfterTarget ? 'node-after' : '')}"></div>`;
+
+      const onRoadBusHtml = onRoadBuses.length > 0
+        ? `<div class="bus-fig-wrap on-road">${renderMiniBusSvg()}<span class="bus-fig-badge">${onRoadBuses.length > 1 ? ('行驶×' + onRoadBuses.length) : '行驶中'}</span></div>`
+        : "";
+
+      const atStnBusHtml = atStnBuses.length > 0
+        ? `<div class="bus-fig-wrap at-station">${renderMiniBusSvg()}<span class="bus-fig-badge">${atStnBuses.length > 1 ? ('到站×' + atStnBuses.length) : '已到站'}</span></div>`
+        : "";
+
+      listHtml += `
+        <div class="${cls}" id="stnRow_${st.order}" onclick="window.DetailMod.selectTargetStation(${st.order})">
+          ${segHtml}
+          ${onRoadBusHtml}
+          ${atStnBusHtml}
+          ${nodeHtml}
+          <div style="flex:1;padding-right:6px;">
+            <span class="stn-title">${st.order} ${esc(st.sn)}</span>${metroBadges}
+          </div>
+        </div>`;
+    });
+    listHtml += '</div>';
+
+    document.getElementById("lineSheetBody").innerHTML = etaHtml + listHtml;
+    const targetEl = document.getElementById("stnRow_" + detailCtx.targetOrder);
+    if (targetEl) {
+      setTimeout(() => {
+        try { targetEl.scrollIntoView({ block: "center", behavior: "smooth" }); } catch (e) {}
+      }, 60);
+    }
+  }
+
+  async function selectTargetStation(order) {
+    const st = detailCtx.stations.find(s => s.order === order);
+    if (!st) return;
+    window.AppUI.tick();
+    detailCtx.targetOrder = st.order;
+    detailCtx.stationId = st.sId;
+    detailCtx.stationName = st.sn;
+    detailCtx.nextStationName = detailCtx.stations[st.order] ? detailCtx.stations[st.order].sn : "";
+    await refreshLineDetailModal(false);
+  }
+
+  async function flipDirection() {
+    if (!detailCtx.oppositeLineId) return;
+    window.AppUI.tick();
+    detailCtx.lineId = detailCtx.oppositeLineId;
+    detailCtx.direction = "";
+    detailCtx.nextStationName = "";
+    detailCtx.stationId = "";
+    detailCtx.targetOrder = 0;
+    await refreshLineDetailModal(false);
+  }
+
+  function togglePinFromDetail() {
+    window.AppUI.tick();
+    const entry = {
+      key: detailCtx.cityId + "__" + detailCtx.lineId + "__" + detailCtx.stationId,
+      cityId: detailCtx.cityId,
+      cityName: detailCtx.cityName,
+      lineId: detailCtx.lineId,
+      oppositeLineId: detailCtx.oppositeLineId || "",
+      lineNo: detailCtx.lineNo || "",
+      lineName: detailCtx.lineName || "",
+      direction: detailCtx.direction || "0",
+      startSn: detailCtx.startSn || "",
+      endSn: detailCtx.endSn || "",
+      stationId: detailCtx.stationId || "",
+      stationName: detailCtx.stationName || "",
+      nextStationName: detailCtx.nextStationName || "",
+      targetOrder: detailCtx.targetOrder || 1
+    };
+    const added = window.AppUI.toggleFavoriteEntry(entry);
+    window.AppUI.showToast(added ? "已加入常用看板" : "已从常用看板移除");
+    renderLineDetailContent();
+  }
+
+  function toggleWatchFromDetail() {
+    window.AppUI.toggleWatchForItem({
+      key: detailCtx.cityId + "__" + detailCtx.lineId + "__" + detailCtx.stationId,
+      cityId: detailCtx.cityId,
+      lineId: detailCtx.lineId,
+      lineName: detailCtx.lineName,
+      direction: detailCtx.direction,
+      endSn: detailCtx.endSn,
+      stationId: detailCtx.stationId,
+      stationName: detailCtx.stationName,
+      nextStationName: detailCtx.nextStationName,
+      lineNo: detailCtx.lineNo,
+      targetOrder: detailCtx.targetOrder
+    });
+    setTimeout(renderLineDetailContent, 150);
+  }
+
+  function closeLineDetailModal() {
+    detailCtx.open = false;
+    document.getElementById("lineModalMask").classList.remove("open");
+  }
+
+  async function openTimetableModal() {
+    if (!detailCtx.lineId) return;
+    window.AppUI.tick();
+    openAuxSheet(S.formatRouteDisplayName(detailCtx.lineName) + " · 首站发车时刻表", "正在加载时刻表…");
+    const res = await S.callBusApi("timetable", { cityId: detailCtx.cityId, lineId: detailCtx.lineId });
+    if (!res.ok || !res.data || !Array.isArray(res.data.timetable) || res.data.timetable.length === 0) {
+      document.getElementById("auxSheetBody").innerHTML =
+        '<div style="padding:20px 0;text-align:center;color:var(--text-muted);font-size:0.83rem;">该线路暂未公开固定时刻表，请以实时车辆位置为准</div>';
+      return;
+    }
+    let html = `<div style="font-size:0.76rem;color:var(--text-muted);margin-bottom:10px;">${esc(res.data.tip || "首站计划发车间隔参考")}</div>`;
+    res.data.timetable.forEach(seg => {
+      const times = Array.isArray(seg.times) ? seg.times.join(" · ") : "";
+      html += `
+        <div class="card" style="padding:11px 12px;margin-bottom:8px;">
+          <div style="display:flex;justify-content:space-between;font-size:0.83rem;font-weight:800;">
+            <span>${esc(seg.fTime || "")} - ${esc(seg.eTime || "")}</span>
+            <span style="color:var(--accent);">${esc(seg.depIntervalTips || "")}</span>
+          </div>
+          ${seg.forecastDesc ? `<div style="font-size:0.75rem;color:#0284c7;margin-top:4px;font-weight:700;">${esc(seg.forecastDesc)}</div>` : ''}
+          ${times ? `<div style="font-size:0.75rem;color:var(--text-sub);margin-top:6px;line-height:1.6;">${esc(times)}</div>` : ''}
+        </div>`;
+    });
+    document.getElementById("auxSheetBody").innerHTML = html;
+  }
+
+  let currentStationSheetCtx = { cityId: "034", cityName: "上海", stationId: "", stationName: "", lines: [] };
+
+  async function openSameStationModal(stationId, stationName, optCityId, optCityName) {
+    if (!stationId) return;
+    window.AppUI.tick();
+    const curCity = (window.AppUI && window.AppUI.getState) ? window.AppUI.getState().city : { cityId: "034", cityName: "上海" };
+    const cityId = optCityId || curCity.cityId || "034";
+    const cityName = optCityName || curCity.cityName || "上海";
+    openAuxSheet(stationName + " · 站台途经公交", "正在查询本站所有实时公交…");
+    const res = await S.callBusApi("stationDetail", { cityId, stationId, destSId: "-1" });
+    const lines = (res.ok && res.data && Array.isArray(res.data.lines)) ? res.data.lines : [];
+    if (lines.length === 0) {
+      document.getElementById("auxSheetBody").innerHTML =
+        '<div style="padding:20px 0;text-align:center;color:var(--text-muted);font-size:0.83rem;">暂未查询到本站途经线路</div>';
+      return;
+    }
+    currentStationSheetCtx = { cityId, cityName, stationId, stationName, lines };
+    renderStationLinesSheet();
+  }
+
+  function renderStationLinesSheet() {
+    const { cityId, cityName, stationId, stationName, lines } = currentStationSheetCtx;
+    let html = `<div style="font-size:0.74rem;color:var(--text-muted);margin-bottom:9px;">点击左侧线路可<strong>临时查看</strong>全线车况；点右侧按钮可将该站线路加入/移出<strong>常用看板</strong></div>`;
+    lines.forEach((item, idx) => {
+      const ln = item.line || {};
+      const key = cityId + "__" + ln.lineId + "__" + stationId;
+      const isFav = window.AppUI.isFavoriteKey(key);
+      const stnState = window.AppUI.extractBestStnState(item.stnStates);
+      html += `
+        <div class="near-line-row" style="gap:8px;">
+          <div style="flex:1;min-width:0;" onclick="window.DetailMod.jumpLineFromAux('${esc(ln.lineId)}','${esc(ln.name)}','${esc(stationId)}','${esc(stationName)}','${esc(cityId)}','${esc(cityName)}')">
+            <div>
+              <span class="route-badge" style="font-size:0.80rem;padding:2px 8px;">${esc(S.formatRouteDisplayName(ln.name))}</span>
+              <span style="font-size:0.78rem;color:var(--text-sub);margin-left:6px;font-weight:700;">开往 ${esc(ln.endSn || "")}</span>
+            </div>
+            <div style="font-size:0.72rem;color:var(--text-muted);margin-top:3px;">
+              实时：<strong style="color:${stnState.arriving ? '#d97706' : 'var(--accent)'};">${esc(stnState.label)}</strong>
+              ${stnState.sub ? ` · ${esc(stnState.sub)}` : ''}
+            </div>
+          </div>
+          <button class="chip-btn ${isFav ? 'watching' : 'primary'}" style="flex-shrink:0;" onclick="window.DetailMod.toggleFavFromStationSheet(${idx})">
+            ${isFav ? '✓ 已存常用' : '+ 常用'}
+          </button>
+        </div>`;
+    });
+    document.getElementById("auxSheetBody").innerHTML = html;
+  }
+
+  async function toggleFavFromStationSheet(idx) {
+    const { cityId, cityName, stationId, stationName, lines } = currentStationSheetCtx;
+    const item = lines[idx];
+    if (!item || !item.line) return;
+    window.AppUI.tick();
+    const ln = item.line;
+    const key = cityId + "__" + ln.lineId + "__" + stationId;
+    if (window.AppUI.isFavoriteKey(key)) {
+      window.AppUI.toggleFavoriteEntry({ key });
+      window.AppUI.showToast("已从常用看板移除 " + S.formatRouteDisplayName(ln.name));
+      renderStationLinesSheet();
+      return;
+    }
+    // 补全该线路在本站的精确站序 targetOrder 与反向 lineId
+    let targetOrder = Number(item.targetOrder || 0);
+    let oppositeLineId = "";
+    let nextStationName = "";
+    const detailRes = await S.callBusApi("lineDetail", { cityId, lineId: ln.lineId });
+    if (detailRes.ok && detailRes.data) {
+      const sts = Array.isArray(detailRes.data.stations) ? detailRes.data.stations : [];
+      const other = Array.isArray(detailRes.data.otherlines) ? detailRes.data.otherlines : [];
+      if (other.length > 0) oppositeLineId = other[0].lineId || "";
+      const stMatch = sts.find(s => s.sId === stationId || s.sn === stationName);
+      if (stMatch) {
+        targetOrder = stMatch.order;
+        nextStationName = sts[stMatch.order] ? sts[stMatch.order].sn : "";
+      }
+    }
+    window.AppUI.toggleFavoriteEntry({
+      key,
+      cityId,
+      cityName,
+      lineId: ln.lineId,
+      oppositeLineId,
+      lineNo: ln.lineNo || "",
+      lineName: ln.name || "",
+      direction: ln.direction !== undefined ? String(ln.direction) : "0",
+      startSn: ln.startSn || "",
+      endSn: ln.endSn || "",
+      stationId,
+      stationName,
+      nextStationName,
+      targetOrder: targetOrder || 1
+    });
+    window.AppUI.showToast("已将「" + stationName + " · " + S.formatRouteDisplayName(ln.name) + "」加入常用看板");
+    renderStationLinesSheet();
+  }
+
+  async function openMetroStationModal(stationId, stationName) {
+    window.AppUI.tick();
+    openAuxSheet("地铁「" + stationName + "」站 · 首末班时刻", "正在同步上海申通地铁站点运营时刻…");
+    const res = await S.callBusApi("subwayStation", { stationId, stationName });
+    const opList = (res.ok && res.data && Array.isArray(res.data.operateTime)) ? res.data.operateTime : [];
+    if (opList.length === 0) {
+      document.getElementById("auxSheetBody").innerHTML =
+        '<div style="padding:20px 0;text-align:center;color:var(--text-muted);font-size:0.83rem;">暂未查询到该地铁站首末班数据</div>';
+      return;
+    }
+    let html = `<div style="font-size:0.74rem;color:var(--text-muted);margin-bottom:10px;">上海地铁各方向首末班发车时刻（高峰间隔约 2.5~4 分钟，平峰约 5~8 分钟）</div>`;
+    opList.forEach(line => {
+      const rgb = line.color ? `rgb(${line.color})` : "#2563eb";
+      const rows = (line.times || []).map(t => `
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-top:1px dashed var(--card-border);font-size:0.79rem;">
+          <span style="font-weight:700;color:var(--text-main);">${esc(t.dirName)}</span>
+          <span style="color:var(--text-sub);font-weight:700;">首 ${esc(t.startTime)} · 末 ${esc(t.endTime)}</span>
+        </div>`).join("");
+      html += `
+        <div class="card" style="padding:12px 14px;margin-bottom:9px;">
+          <div style="margin-bottom:6px;">
+            <span style="display:inline-block;padding:2px 9px;border-radius:8px;background:${rgb};color:#fff;font-size:0.8rem;font-weight:900;">${esc(line.code)}</span>
+          </div>
+          ${rows}
+        </div>`;
+    });
+    document.getElementById("auxSheetBody").innerHTML = html;
+  }
+
+  function jumpLineFromAux(lineId, lineName, stationId, stationName, cityId, cityName) {
+    closeAuxSheet();
+    openLineDetailModal({ lineId, lineName, stationId, stationName, cityId, cityName });
+  }
+
+  function openAuxSheet(title, loadingMsg) {
+    document.getElementById("auxModalMask").classList.add("open");
+    document.getElementById("auxSheetTitle").textContent = title;
+    document.getElementById("auxSheetBody").innerHTML =
+      `<div style="padding:22px 0;text-align:center;color:var(--text-muted);font-size:0.83rem;">${esc(loadingMsg)}</div>`;
+  }
+
+  function closeAuxSheet() {
+    document.getElementById("auxModalMask").classList.remove("open");
+  }
+
+  window.DetailMod = {
+    isOpen: () => detailCtx.open,
+    isAuxOpen: () => document.getElementById("auxModalMask").classList.contains("open"),
+    openLineDetailModal,
+    refreshLineDetailModal,
+    closeLineDetailModal,
+    selectTargetStation,
+    flipDirection,
+    togglePinFromDetail,
+    toggleWatchFromDetail,
+    openTimetableModal,
+    openSameStationModal,
+    toggleFavFromStationSheet,
+    openMetroStationModal,
+    jumpLineFromAux,
+    openAuxSheet,
+    closeAuxSheet
+  };
+})();
+
+// 申城实时公交 - 首页常用看板、附近站点定位雷达、快速查线与设置中心
+(function () {
+  const S = window.BusStore;
+  const state = S.loadState();
+
+  let activePage = "home"; // home | settings
+  let homeSubTab = "fav";  // fav | nearby
+  let favLiveMap = {};     // key -> { loading, error, upcoming, depDesc, lineDesc, lineObj }
+  let nearStopsData = [];
+  let watchState = { active: false, watchKey: "", summary: "" };
+  let autoTimer = null;
+  let toastTimer = null;
+  let searchDebounce = null;
+
+  function esc(str) {
+    return String(str === undefined || str === null ? "" : str)
+      .replace(/&/g, "&amp;").replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  }
+
+  function formatSafeError(err) {
+    const s = String(err || "").trim();
+    if (!s) return "请检查网络";
+    if (/unable to resolve|unknownhost|no address|network|connect|refused|unreachable/i.test(s)) {
+      return "网络未连接";
+    }
+    if (/timeout|timed out|超时/i.test(s)) {
+      return "请求超时";
+    }
+    if (/[a-zA-Z]{5,}/.test(s) || s.length > 8) {
+      return "网络未连接";
+    }
+    return s;
+  }
+
+  function tick() {
+    if (window.AndroidBridge && typeof window.AndroidBridge.vibrateTick === "function") {
+      window.AndroidBridge.vibrateTick();
+    }
+  }
+
+  function showToast(msg) {
+    const bar = document.getElementById("toastBar");
+    const txt = document.getElementById("toastText");
+    if (!bar || !txt) return;
+    txt.textContent = msg;
+    bar.classList.add("show");
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { bar.classList.remove("show"); }, 2000);
+  }
+
+  function hideToast() {
+    if (toastTimer) clearTimeout(toastTimer);
+    document.getElementById("toastBar").classList.remove("show");
+  }
+
+  function applyTheme() {
+    const mode = state.settings.themeMode || "auto";
+    let isNight = false;
+    if (mode === "night") {
+      isNight = true;
+    } else if (mode === "auto") {
+      const h = new Date().getHours();
+      isNight = (h >= 19 || h < 6);
+    }
+    document.body.classList.toggle("theme-night", isNight);
+    if (window.AndroidBridge && typeof window.AndroidBridge.setSystemTheme === "function") {
+      window.AndroidBridge.setSystemTheme(isNight);
+    }
+  }
+
+  function extractBestStnState(stnStates) {
+    if (!Array.isArray(stnStates) || stnStates.length === 0) {
+      return { label: "等待发车", sub: "", arriving: false };
+    }
+    const valid = stnStates.filter(x => x && (x.travelTime >= 0 || x.value >= 0));
+    if (valid.length === 0) {
+      return { label: "暂未发车", sub: "", arriving: false };
+    }
+    valid.sort((a, b) => {
+      const ta = a.travelTime >= 0 ? a.travelTime : a.value * 150;
+      const tb = b.travelTime >= 0 ? b.travelTime : b.value * 150;
+      return ta - tb;
+    });
+    const best = valid[0];
+    const stops = best.value >= 0 ? best.value : 0;
+    const sec = best.travelTime >= 0 ? best.travelTime : stops * 150;
+    const distStr = best.distanceToDest > 0 ? S.formatDistance(best.distanceToDest) : "";
+    if (stops === 0 && sec <= 55) {
+      return { label: "即将进站", sub: distStr || "请留意来车", arriving: true };
+    }
+    const mins = Math.max(1, Math.round(sec / 60));
+    return {
+      label: mins + " 分钟",
+      sub: "还有 " + stops + " 站" + (distStr ? " · " + distStr : ""),
+      arriving: false
+    };
+  }
+
+  async function refreshFavorites(manual) {
+    if (manual) tick();
+    renderHeaderLoc();
+    const list = state.favorites;
+    if (list.length === 0) {
+      renderFavoritesList();
+      return;
+    }
+
+    await Promise.all(list.map(async (item) => {
+      const res = await S.callBusApi("lineDetail", {
+        cityId: item.cityId || "034",
+        lineId: item.lineId,
+        lineName: item.lineName,
+        direction: item.direction,
+        stationName: item.stationName,
+        nextStationName: item.nextStationName,
+        lineNo: item.lineNo,
+        targetOrder: String(item.targetOrder || 1),
+        stationId: item.stationId
+      });
+      if (res.ok && res.data) {
+        const d = res.data;
+        const ln = d.line || {};
+        const other = Array.isArray(d.otherlines) ? d.otherlines : [];
+        if (other.length > 0 && other[0].lineId) item.oppositeLineId = other[0].lineId;
+        if (ln.endSn) item.endSn = ln.endSn;
+        favLiveMap[item.key] = {
+          ok: true,
+          upcoming: S.computeUpcomingBuses(d.buses || [], Number(item.targetOrder || 1)),
+          depDesc: d.depDesc || "",
+          lineDesc: ln.desc || "",
+          updatedAt: Date.now()
+        };
+      } else {
+        favLiveMap[item.key] = { ok: false, error: res.error || "连接异常" };
+      }
+    }));
+
+    S.saveState(state);
+    renderFavoritesList();
+    updateRefreshStamp();
+    if (manual) showToast("已更新实时公交到站时间");
+  }
+
+  function renderFavoritesList() {
+    const box = document.getElementById("favListBox");
+    if (!box) return;
+    if (state.favorites.length === 0) {
+      box.innerHTML = `
+        <div class="card" style="padding:22px 16px;text-align:center;">
+          <div style="font-size:0.92rem;font-weight:800;color:var(--text-main);margin-bottom:6px;">常用看板暂未添加站点线路</div>
+          <div style="font-size:0.78rem;color:var(--text-muted);line-height:1.6;margin-bottom:14px;">
+            你可以在上方搜索框搜公交站名（如「陕西北路南京西路」），或切到「附近站点」点选站台，将需要的公交线路勾选加入常用看板。
+          </div>
+          <div style="display:flex;justify-content:center;gap:8px;flex-wrap:wrap;">
+            <button class="chip-btn primary" onclick="window.AppUI.switchHomeSubTab('nearby')">浏览附近站点添加</button>
+            <button class="chip-btn" onclick="document.getElementById('searchInput').focus()">搜索公交站台</button>
+          </div>
+        </div>`;
+      return;
+    }
+
+    // 按城市+站点分组渲染：每条路线独立记住所属城市 cityId
+    const groups = [];
+    const groupMap = {};
+    state.favorites.forEach((item, idx) => {
+      const cid = item.cityId || "034";
+      const cname = item.cityName || "上海";
+      const gKey = cid + "__" + (item.stationId || "") + "__" + (item.stationName || "常用站点");
+      if (!groupMap[gKey]) {
+        groupMap[gKey] = {
+          cityId: cid,
+          cityName: cname,
+          stationId: item.stationId || "",
+          stationName: item.stationName || "常用站点",
+          entries: []
+        };
+        groups.push(groupMap[gKey]);
+      }
+      groupMap[gKey].entries.push({ item, idx });
+    });
+
+    const groupsHtml = groups.map(grp => {
+      const rowsHtml = grp.entries.map(({ item, idx }) => {
+        const live = favLiveMap[item.key];
+        const isWatching = watchState.active && watchState.watchKey === item.key;
+        let etaHtml = `<div class="eta-main idle">同步中…</div>`;
+
+        if (live && live.ok) {
+          if (live.upcoming && live.upcoming.length > 0) {
+            const b1 = live.upcoming[0];
+            const b2 = live.upcoming[1];
+            const arriving = (b1.stopsAway === 0 || (b1.travelSec >= 0 && b1.travelSec <= 45));
+            const mainTxt = arriving
+              ? `<div class="eta-main arriving">即将进站</div>`
+              : `<div class="eta-main">${Math.max(1, b1.etaMin)}<span class="eta-unit">分钟</span></div>`;
+            const sub1 = `还有 ${b1.stopsAway} 站` + (b1.distM > 0 ? ` · ${S.formatDistance(b1.distM)}` : "");
+            const sub2 = b2 ? `下班 ${Math.max(1, b2.etaMin)}分/${b2.stopsAway}站` : "";
+            etaHtml = `${mainTxt}<div class="eta-sub">${esc(sub1)}</div>${sub2 ? `<div class="eta-sub" style="opacity:0.8;">${esc(sub2)}</div>` : ""}`;
+          } else {
+            const idleTxt = live.depDesc || live.lineDesc || "等待发车";
+            etaHtml = `<div class="eta-main idle">${esc(idleTxt)}</div><div class="eta-sub">首站待发</div>`;
+          }
+        } else if (live && !live.ok) {
+          etaHtml = `<div class="eta-main idle">离线待刷新</div><div class="eta-sub">${esc(formatSafeError(live.error))}</div>`;
+        }
+
+        return `
+          <div style="padding:10px 0;border-top:1px solid var(--card-border);">
+            <div class="bus-card-top" onclick="window.AppUI.openFavCard(${idx})" style="cursor:pointer;">
+              <div style="flex:1;min-width:0;overflow:hidden;">
+                <div style="display:flex;align-items:center;gap:7px;flex-wrap:nowrap;">
+                  <span class="route-badge">${esc(S.formatRouteDisplayName(item.lineName))}</span>
+                  <span style="font-size:0.82rem;font-weight:800;color:var(--text-main);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">开往 ${esc(item.endSn || "")}</span>
+                </div>
+                ${item.nextStationName ? `<div class="stop-text" style="margin-top:5px;">下一站：${esc(item.nextStationName)}</div>` : ""}
+              </div>
+              <div class="eta-box">${etaHtml}</div>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;margin-top:8px;">
+              <div style="display:flex;gap:6px;">
+                <button class="chip-btn" onclick="window.AppUI.openFavCard(${idx})">全线车况</button>
+                ${item.oppositeLineId ? `<button class="chip-btn" onclick="window.AppUI.flipFavCard(${idx})">返程换向</button>` : ""}
+              </div>
+              <button class="chip-btn ${isWatching ? 'watching' : ''}" onclick="window.AppUI.toggleWatchFav(${idx})">
+                ${isWatching ? "盯梢中 · 停止" : "到站提醒"}
+              </button>
+            </div>
+          </div>`;
+      }).join("");
+
+      return `
+        <div class="bus-card" style="padding:12px 14px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding-bottom:8px;">
+            <div style="font-size:0.92rem;font-weight:900;color:var(--text-main);min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+              <span class="dot dot-mint"></span><span class="metro-pill" style="margin-left:0;margin-right:5px;">${esc(grp.cityName)}</span>${esc(grp.stationName)} <span style="font-size:0.72rem;font-weight:600;color:var(--text-muted);">站</span>
+            </div>
+            ${grp.stationId ? `<button class="chip-btn" style="padding:3px 9px;font-size:0.72rem;color:var(--accent);" onclick="window.DetailMod.openSameStationModal('${esc(grp.stationId)}','${esc(grp.stationName)}','${esc(grp.cityId)}','${esc(grp.cityName)}')">+ 增删本站线路</button>` : ""}
+          </div>
+          ${rowsHtml}
+        </div>`;
+    }).join("");
+
+    const footerAddHtml = `
+      <div style="text-align:center;margin:6px 0 10px;">
+        <button class="chip-btn" style="padding:7px 14px;" onclick="window.AppUI.switchHomeSubTab('nearby')">
+          + 浏览附近公交站添加常用线路
+        </button>
+      </div>`;
+
+    box.innerHTML = groupsHtml + footerAddHtml;
+  }
+
+  async function flipFavCard(idx) {
+    const item = state.favorites[idx];
+    if (!item || !item.oppositeLineId) return;
+    tick();
+    showToast("正在切换返程方向并匹配就近站点…");
+    const cid = item.cityId || "034";
+    const res = await S.callBusApi("lineDetail", { cityId: cid, lineId: item.oppositeLineId });
+    if (!res.ok || !res.data || !Array.isArray(res.data.stations)) {
+      showToast("切换方向失败，请稍后重试");
+      return;
+    }
+    const d = res.data;
+    const ln = d.line || {};
+    const sts = d.stations;
+    let targetSt = sts.find(s => s.sn === item.stationName);
+    if (!targetSt) {
+      let bestDist = Infinity;
+      sts.forEach(s => {
+        const sLat = s.wgsLat && s.wgsLat > 1 ? s.wgsLat : s.lat;
+        const sLng = s.wgsLng && s.wgsLng > 1 ? s.wgsLng : s.lng;
+        if (!sLat || !sLng) return;
+        const dist = Math.hypot((sLat - state.location.lat) * 111000, (sLng - state.location.lng) * 95000);
+        if (dist < bestDist) { bestDist = dist; targetSt = s; }
+      });
+    }
+    if (!targetSt) targetSt = sts[0];
+    const oldOpp = item.lineId;
+    item.lineId = item.oppositeLineId;
+    item.oppositeLineId = oldOpp;
+    item.direction = ln.direction !== undefined ? String(ln.direction) : (item.direction === "0" ? "1" : "0");
+    item.startSn = ln.startSn || "";
+    item.endSn = ln.endSn || "";
+    item.stationId = targetSt.sId;
+    item.stationName = targetSt.sn;
+    item.targetOrder = targetSt.order;
+    item.nextStationName = sts[targetSt.order] ? sts[targetSt.order].sn : "";
+    item.key = cid + "__" + item.lineId + "__" + item.stationId;
+    S.saveState(state);
+    await refreshFavorites(false);
+    showToast("已切换至开往「" + item.endSn + "」方向");
+  }
+
+  async function refreshNearbyStops(manual) {
+    if (manual) tick();
+    const box = document.getElementById("nearbyListBox");
+    if (nearStopsData.length === 0 && box) {
+      box.innerHTML = `<div class="card" style="text-align:center;color:var(--text-muted);font-size:0.84rem;">正在扫描「${esc(state.location.name)}」周边实时公交站点…</div>`;
+    }
+    const res = await S.callBusApi("nearlines", {
+      lat: state.location.lat,
+      lng: state.location.lng,
+      isGcj: !!state.location.isGcj
+    });
+    if (!res.ok || !res.data || !Array.isArray(res.data.nearLines)) {
+      if (box) box.innerHTML = `<div class="card" style="text-align:center;color:var(--text-muted);font-size:0.84rem;">周边站点暂未加载：${esc(formatSafeError(res.error))}，请检查网络后点击刷新</div>`;
+      return;
+    }
+    nearStopsData = res.data.nearLines;
+    renderNearbyStops();
+    updateRefreshStamp();
+    if (manual) showToast("已刷新周边站点实时车况");
+  }
+
+  function renderNearbyStops() {
+    const box = document.getElementById("nearbyListBox");
+    if (!box) return;
+    if (nearStopsData.length === 0) {
+      box.innerHTML = `<div class="card" style="text-align:center;color:var(--text-muted);font-size:0.84rem;">当前坐标 1 公里内暂无公交站点</div>`;
+      return;
+    }
+    box.innerHTML = nearStopsData.slice(0, 8).map(grp => {
+      const lines = Array.isArray(grp.lines) ? grp.lines : [];
+      const rows = lines.map(item => {
+        const ln = item.line || {};
+        const st = extractBestStnState(item.stnStates);
+        return `
+          <div class="near-line-row" onclick="window.DetailMod.openLineDetailModal({lineId:'${esc(ln.lineId)}',lineName:'${esc(ln.name)}',stationId:'${esc(grp.sId)}',stationName:'${esc(grp.sn)}'})">
+            <div style="min-width:0;padding-right:8px;">
+              <span class="route-badge" style="font-size:0.8rem;padding:2px 8px;">${esc(S.formatRouteDisplayName(ln.name))}</span>
+              <span style="font-size:0.78rem;font-weight:700;color:var(--text-sub);margin-left:6px;">→ ${esc(ln.endSn || "")}</span>
+            </div>
+            <div style="text-align:right;flex-shrink:0;">
+              <div style="font-size:0.86rem;font-weight:900;color:${st.arriving ? '#d97706' : 'var(--accent)'};">${esc(st.label)}</div>
+              ${st.sub ? `<div style="font-size:0.68rem;color:var(--text-muted);">${esc(st.sub)}</div>` : ""}
+            </div>
+          </div>`;
+      }).join("");
+
+      return `
+        <div class="card" style="padding:13px 14px;">
+          <div class="near-stop-header">
+            <div class="near-stop-name"><span class="dot dot-sky"></span>${esc(grp.sn)}</div>
+            <div style="display:flex;align-items:center;gap:6px;">
+              <span class="dist-tag">步行 ${S.formatDistance(grp.distance)}</span>
+              <button class="chip-btn" style="padding:2px 8px;font-size:0.7rem;color:var(--accent);" onclick="window.DetailMod.openSameStationModal('${esc(grp.sId)}','${esc(grp.sn)}')">+ 选线路</button>
+            </div>
+          </div>
+          ${rows}
+        </div>`;
+    }).join("");
+  }
+
+  // Search Input Handler (站点优先方便选线加常用，线路支持直接临时查看)
+  function onSearchInput(val) {
+    const q = String(val || "").trim();
+    const panel = document.getElementById("searchResultBox");
+    const clearBtn = document.getElementById("searchClearBtn");
+    clearBtn.style.display = q ? "inline-block" : "none";
+    if (!q) {
+      panel.style.display = "none";
+      panel.innerHTML = "";
+      return;
+    }
+    if (searchDebounce) clearTimeout(searchDebounce);
+    searchDebounce = setTimeout(async () => {
+      const res = await S.callBusApi("search", { keyword: q, count: 10 });
+      if (!res.ok || !res.data) return;
+      const lines = Array.isArray(res.data.lines) ? res.data.lines : [];
+      const stations = Array.isArray(res.data.stations) ? res.data.stations : [];
+      if (lines.length === 0 && stations.length === 0) {
+        panel.style.display = "block";
+        panel.innerHTML = `<div style="padding:10px;font-size:0.8rem;color:var(--text-muted);text-align:center;">未找到匹配的上海公交站台或线路</div>`;
+        return;
+      }
+      let html = "";
+      stations.slice(0, 5).forEach(st => {
+        html += `
+          <div class="near-line-row" onclick="window.AppUI.pickSearchResultStation('${esc(st.sId)}','${esc(st.sn)}')">
+            <div><span class="dot dot-mint"></span><strong style="font-size:0.83rem;">${esc(st.sn)}</strong> <span style="font-size:0.71rem;color:var(--text-muted);">公交站</span></div>
+            <span style="font-size:0.73rem;color:var(--accent);font-weight:700;">选本站线路 ▸</span>
+          </div>`;
+      });
+      lines.slice(0, 6).forEach(ln => {
+        html += `
+          <div class="near-line-row" onclick="window.AppUI.pickSearchResultLine('${esc(ln.lineId)}','${esc(ln.name)}')">
+            <div>
+              <span class="route-badge" style="font-size:0.78rem;padding:2px 8px;">${esc(S.formatRouteDisplayName(ln.name))}</span>
+              <span style="font-size:0.76rem;color:var(--text-sub);margin-left:6px;">${esc(ln.startSn || "")} → ${esc(ln.endSn || "")}</span>
+            </div>
+            <span style="font-size:0.73rem;color:var(--text-muted);">临时查全线</span>
+          </div>`;
+      });
+      panel.style.display = "block";
+      panel.innerHTML = html;
+    }, 240);
+  }
+
+  function clearSearch() {
+    document.getElementById("searchInput").value = "";
+    document.getElementById("searchClearBtn").style.display = "none";
+    const panel = document.getElementById("searchResultBox");
+    panel.style.display = "none";
+    panel.innerHTML = "";
+  }
+
+  function pickSearchResultLine(lineId, lineName) {
+    clearSearch();
+    window.DetailMod.openLineDetailModal({ lineId, lineName });
+  }
+
+  function pickSearchResultStation(sId, sn) {
+    clearSearch();
+    window.DetailMod.openSameStationModal(sId, sn);
+  }
+
+  // Nationwide 480+ City Picker & Location Picker
+  let allCitiesCache = null;
+
+  async function openCityPickerModal() {
+    tick();
+    const curCityName = (state.city && state.city.cityName) ? state.city.cityName : "上海";
+    const hotBtns = S.HOT_CITIES.map(c => {
+      const isCur = state.city && state.city.cityId === c.cityId;
+      return `<button class="chip-btn ${isCur ? 'primary' : ''}" onclick="window.AppUI.selectCityById('${esc(c.cityId)}','${esc(c.cityName)}')">${esc(c.cityName)}</button>`;
+    }).join(" ");
+
+    const html = `
+      <div style="margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;gap:8px;">
+        <div style="font-size:0.8rem;color:var(--text-sub);">当前城市：<strong style="color:var(--accent);">${esc(curCityName)}</strong></div>
+        <button class="chip-btn primary" onclick="window.AppUI.triggerGpsLocate()">GPS自动识别所在城市</button>
+      </div>
+      <div class="search-bar" style="margin-bottom:10px;">
+        <input id="cityFilterInput" type="text" placeholder="搜索全国 480+ 城市名称或拼音（如：杭州、苏州、大理）" oninput="window.AppUI.filterCityList(this.value)" />
+      </div>
+      <div id="cityFilterResultBox" style="max-height:220px;overflow-y:auto;margin-bottom:10px;"></div>
+      <div style="font-size:0.74rem;color:var(--text-muted);margin-bottom:6px;">热门城市一键切换（每条常用路线独立保存所属城市）</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;">${hotBtns}</div>
+      <div id="allCitiesCountTip" style="font-size:0.72rem;color:var(--text-muted);">正在同步全国 486 城实时公交目录…</div>`;
+
+    window.DetailMod.openAuxSheet("切换全国城市（支持 486 城）", "");
+    document.getElementById("auxSheetBody").innerHTML = html;
+
+    if (!allCitiesCache) {
+      const res = await S.callBusApi("cityList", {});
+      if (res.ok && res.data && Array.isArray(res.data.cityList) && res.data.cityList.length > 0) {
+        allCitiesCache = res.data.cityList;
+      } else {
+        allCitiesCache = S.HOT_CITIES.slice();
+      }
+    }
+    const tipEl = document.getElementById("allCitiesCountTip");
+    if (tipEl) {
+      tipEl.textContent = "已加载全国 " + allCitiesCache.length + " 个支持实时公交的城市，可在上方输入框检索任意城市。";
+    }
+  }
+
+  function filterCityList(val) {
+    const q = String(val || "").trim().toLowerCase();
+    const box = document.getElementById("cityFilterResultBox");
+    if (!box) return;
+    if (!q) {
+      box.innerHTML = "";
+      return;
+    }
+    const pool = allCitiesCache || S.HOT_CITIES;
+    const matched = pool.filter(c => {
+      const name = String(c.cityName || "").toLowerCase();
+      const py = String(c.pinyin || "").toLowerCase();
+      return name.indexOf(q) >= 0 || py.indexOf(q) >= 0;
+    }).slice(0, 20);
+
+    if (matched.length === 0) {
+      box.innerHTML = `<div style="font-size:0.78rem;color:var(--text-muted);padding:6px 0;">未找到匹配的城市</div>`;
+      return;
+    }
+    box.innerHTML = matched.map(c => `
+      <div class="near-line-row" onclick="window.AppUI.selectCityById('${esc(c.cityId)}','${esc(c.cityName)}')">
+        <div><strong style="font-size:0.84rem;">${esc(c.cityName)}</strong> <span style="font-size:0.72rem;color:var(--text-muted);">城市编码 ${esc(c.cityId)}</span></div>
+        <span style="font-size:0.74rem;color:var(--accent);font-weight:700;">切换至此城市 ▸</span>
+      </div>`).join("");
+  }
+
+  function selectCityById(cityId, cityName) {
+    tick();
+    const cleanName = String(cityName || "上海").replace(/市$/, "");
+    state.city = { cityId: String(cityId || "034"), cityName: cleanName };
+    const hotMatch = S.HOT_CITIES.find(c => c.cityId === state.city.cityId || c.cityName === cleanName);
+    if (hotMatch) {
+      state.location = {
+        name: hotMatch.spotName || (cleanName + "市中心"),
+        lat: hotMatch.lat,
+        lng: hotMatch.lng,
+        isGcj: false
+      };
+    } else {
+      state.location.name = cleanName + "市中心";
+    }
+    nearStopsData = [];
+    S.saveState(state);
+    window.DetailMod.closeAuxSheet();
+    renderHeaderLoc();
+    if (homeSubTab === "nearby") refreshNearbyStops(false);
+    showToast("已切换至「" + cleanName + "」实时公交");
+  }
+
+  function openLocationPicker() {
+    tick();
+    const curCityName = (state.city && state.city.cityName) ? state.city.cityName : "上海";
+    const isSh = state.city && state.city.cityId === "034";
+    const presets = isSh ? S.SHANGHAI_PRESET_SPOTS.map((p, i) => `
+      <button class="chip-btn" onclick="window.AppUI.selectPresetSpot(${i})">${esc(p.name)}</button>
+    `).join(" ") : "";
+    const html = `
+      <div style="margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;gap:8px;">
+        <div style="font-size:0.8rem;color:var(--text-sub);">当前城市：<strong style="color:var(--accent);">${esc(curCityName)}</strong></div>
+        <button class="chip-btn" style="color:var(--accent);" onclick="window.AppUI.openCityPickerModal()">切换全国城市 ▾</button>
+      </div>
+      <div style="margin-bottom:12px;">
+        <button class="chip-btn primary" style="width:100%;padding:9px;font-size:0.83rem;" onclick="window.AppUI.triggerGpsLocate()">
+          使用手机 GPS 自动定位当前城市与路口
+        </button>
+      </div>
+      <div class="search-bar" style="margin-bottom:10px;">
+        <input id="locQueryInput" type="text" placeholder="输入${esc(curCityName)}路名或地标检索周边站台" />
+        <button class="text-btn" style="color:var(--accent);" onclick="window.AppUI.runGeocodeSearch()">搜索</button>
+      </div>
+      <div id="geoSearchList" style="margin-bottom:12px;"></div>
+      ${isSh ? `<div style="font-size:0.75rem;color:var(--text-muted);margin-bottom:6px;">上海快捷地标</div><div style="display:flex;flex-wrap:wrap;gap:6px;">${presets}</div>` : ""}`;
+    window.DetailMod.openAuxSheet("切换定位位置 / 城市", "");
+    document.getElementById("auxSheetBody").innerHTML = html;
+  }
+
+  async function runGeocodeSearch() {
+    const inp = document.getElementById("locQueryInput");
+    const q = inp ? inp.value.trim() : "";
+    if (!q) return;
+    tick();
+    const curCityName = (state.city && state.city.cityName) ? state.city.cityName : "上海";
+    const box = document.getElementById("geoSearchList");
+    box.innerHTML = `<div style="font-size:0.78rem;color:var(--text-muted);padding:6px 0;">正在检索${esc(curCityName)}地址…</div>`;
+    const res = await S.callBusApi("geocode", { cityName: curCityName, query: q });
+    const list = (res.ok && Array.isArray(res.data)) ? res.data : [];
+    if (list.length === 0) {
+      box.innerHTML = `<div style="font-size:0.78rem;color:var(--text-muted);padding:6px 0;">未找到对应地点，请尝试输入具体路名</div>`;
+      return;
+    }
+    window.__geoCandidates = list;
+    box.innerHTML = list.map((g, i) => `
+      <div class="near-line-row" onclick="window.AppUI.applyGeoCandidate(${i})">
+        <div>
+          <div style="font-size:0.82rem;font-weight:800;">${esc(g.name)}</div>
+          <div style="font-size:0.71rem;color:var(--text-muted);">${esc(g.detail || "")}</div>
+        </div>
+        <span style="font-size:0.74rem;color:var(--accent);font-weight:700;">设为当前</span>
+      </div>`).join("");
+  }
+
+  function applyGeoCandidate(idx) {
+    const g = (window.__geoCandidates || [])[idx];
+    if (!g) return;
+    state.location = { name: g.name, lat: g.lat, lng: g.lng, isGcj: !!g.isGcj };
+    S.saveState(state);
+    window.DetailMod.closeAuxSheet();
+    renderHeaderLoc();
+    switchHomeSubTab("nearby");
+    showToast("已切换位置至：" + g.name);
+  }
+
+  function selectPresetSpot(idx) {
+    const p = S.SHANGHAI_PRESET_SPOTS[idx];
+    if (!p) return;
+    tick();
+    state.location = { ...p };
+    S.saveState(state);
+    window.DetailMod.closeAuxSheet();
+    renderHeaderLoc();
+    if (homeSubTab === "nearby") refreshNearbyStops(false);
+    showToast("已切换至：" + p.name);
+  }
+
+  function triggerGpsLocate() {
+    tick();
+    if (window.AndroidBridge && typeof window.AndroidBridge.requestNativeLocation === "function") {
+      showToast("正在请求手机 GPS / 移动网络定位…");
+      window.AndroidBridge.requestNativeLocation();
+    } else {
+      showToast("当前环境不支持原生定位");
+    }
+  }
+
+  window.__onNativeLocation = async function (payload) {
+    if (!payload || !payload.ok) {
+      showToast((payload && payload.error) ? payload.error : "定位未成功，请检查手机定位开关");
+      return;
+    }
+    const lat = payload.gcjLat || payload.wgsLat;
+    const lng = payload.gcjLng || payload.wgsLng;
+    const isGcj = !!payload.gcjLat;
+    state.location = {
+      name: payload.name || "当前实时定位",
+      lat,
+      lng,
+      isGcj
+    };
+    // 自动根据 GPS 经纬度检测所在城市（支持去外地自动切换 cityId）
+    try {
+      const cRes = await S.callBusApi("cityList", { lat, lng, isGcj });
+      if (cRes.ok && cRes.data && Array.isArray(cRes.data.cityList)) {
+        allCitiesCache = cRes.data.cityList;
+        const gpsCity = cRes.data.cityList.find(c => Number(c.isGpsCity) === 1);
+        if (gpsCity && gpsCity.cityId) {
+          state.city = {
+            cityId: String(gpsCity.cityId),
+            cityName: String(gpsCity.cityName || "").replace(/市$/, "")
+          };
+        }
+      }
+    } catch (e) {}
+    S.saveState(state);
+    window.DetailMod.closeAuxSheet();
+    renderHeaderLoc();
+    refreshNearbyStops(false);
+    showToast("已定位至：" + state.city.cityName + " · " + state.location.name);
+  };
+
+  // Watch Service Sync
+  function toggleWatchForItem(item) {
+    tick();
+    if (watchState.active && watchState.watchKey === item.key) {
+      stopWatchNow();
+      return;
+    }
+    const cfg = {
+      watchKey: item.key,
+      cityId: item.cityId || (state.city && state.city.cityId) || "034",
+      lineId: item.lineId,
+      lineName: item.lineName,
+      direction: String(item.direction || "0"),
+      endSn: item.endSn || "",
+      stationId: item.stationId || "",
+      stationName: item.stationName || "",
+      nextStationName: item.nextStationName || "",
+      lineNo: item.lineNo || "",
+      targetOrder: Number(item.targetOrder || 1),
+      alertStops: state.settings.alertStops,
+      alertMinutes: state.settings.alertMinutes,
+      nightDnd: state.settings.nightDnd
+    };
+    if (window.AndroidBridge && typeof window.AndroidBridge.startBusWatch === "function") {
+      window.AndroidBridge.startBusWatch(JSON.stringify(cfg));
+      showToast("已开启通知栏实时盯梢，快到站自动震动提醒");
+    } else {
+      showToast("请在安卓客户端中使用通知栏盯梢");
+    }
+  }
+
+  function stopWatchNow() {
+    tick();
+    if (window.AndroidBridge && typeof window.AndroidBridge.stopBusWatch === "function") {
+      window.AndroidBridge.stopBusWatch();
+    }
+    watchState = { active: false, watchKey: "", summary: "" };
+    renderWatchBanner();
+    renderFavoritesList();
+    showToast("已结束等车盯梢");
+  }
+
+  window.__onNativeWatchSync = function (st) {
+    if (!st) return;
+    watchState = st;
+    renderWatchBanner();
+    renderFavoritesList();
+  };
+
+  function renderWatchBanner() {
+    const el = document.getElementById("watchBanner");
+    if (!el) return;
+    if (!watchState.active) {
+      el.classList.remove("show");
+      return;
+    }
+    el.classList.add("show");
+    document.getElementById("watchBannerTitle").textContent =
+      S.formatRouteDisplayName(watchState.lineName) + " · 候车：" + (watchState.stationName || "");
+    document.getElementById("watchBannerDesc").textContent = watchState.summary || "每 15 秒后台刷新中…";
+  }
+
+  // Page & Settings Management
+  function switchMainPage(page) {
+    tick();
+    activePage = page;
+    document.getElementById("pageHome").style.display = page === "home" ? "block" : "none";
+    document.getElementById("pageSettings").style.display = page === "settings" ? "block" : "none";
+    document.getElementById("tabHome").classList.toggle("active", page === "home");
+    document.getElementById("tabSettings").classList.toggle("active", page === "settings");
+    if (page === "settings") renderSettingsPage();
+  }
+
+  function switchHomeSubTab(sub) {
+    tick();
+    homeSubTab = sub;
+    document.getElementById("segFav").classList.toggle("active", sub === "fav");
+    document.getElementById("segNearby").classList.toggle("active", sub === "nearby");
+    document.getElementById("favListBox").style.display = sub === "fav" ? "block" : "none";
+    document.getElementById("nearbyViewWrap").style.display = sub === "nearby" ? "block" : "none";
+    if (sub === "nearby") refreshNearbyStops(false);
+    else refreshFavorites(false);
+  }
+
+  function renderSettingsPage() {
+    document.getElementById("valAlertStops").textContent = state.settings.alertStops + " 站";
+    document.getElementById("valAlertMins").textContent = state.settings.alertMinutes + " 分钟";
+    document.getElementById("chkNightDnd").checked = !!state.settings.nightDnd;
+    document.getElementById("selThemeMode").value = state.settings.themeMode || "auto";
+
+    const kaBtn = document.getElementById("btnKeepAlive");
+    if (kaBtn) {
+      let granted = false;
+      try {
+        if (window.AndroidBridge && typeof window.AndroidBridge.isKeepAliveGranted === "function") {
+          granted = !!window.AndroidBridge.isKeepAliveGranted();
+        }
+      } catch (e) {}
+      kaBtn.textContent = granted ? "✓ 已开启省电白名单" : "省电白名单（仅需点一次）";
+    }
+
+    const mBox = document.getElementById("manageFavBox");
+    if (state.favorites.length === 0) {
+      mBox.innerHTML = `<div style="font-size:0.78rem;color:var(--text-muted);padding:6px 0;">当前无置顶线路</div>`;
+    } else {
+      mBox.innerHTML = state.favorites.map((f, i) => `
+        <div class="setting-row">
+          <div>
+            <strong>${esc(S.formatRouteDisplayName(f.lineName))}</strong> · ${esc(f.stationName)}
+            <div style="font-size:0.72rem;color:var(--text-muted);">开往 ${esc(f.endSn)}</div>
+          </div>
+          <div style="display:flex;gap:5px;">
+            ${i > 0 ? `<button class="chip-btn" onclick="window.AppUI.moveFavUp(${i})">上移</button>` : ""}
+            <button class="chip-btn" onclick="window.AppUI.removeFavAt(${i})">移除</button>
+          </div>
+        </div>`).join("");
+    }
+  }
+
+  function adjustSetting(field, delta, minV, maxV) {
+    tick();
+    const next = Math.min(maxV, Math.max(minV, Number(state.settings[field]) + delta));
+    state.settings[field] = next;
+    S.saveState(state);
+    renderSettingsPage();
+  }
+
+  function renderHeaderLoc() {
+    const cityName = (state.city && state.city.cityName) ? state.city.cityName : "上海";
+    const locEl = document.getElementById("locNameText");
+    if (locEl) {
+      locEl.textContent = cityName + " · " + (state.location.name || "市中心");
+    }
+    const topBtn = document.getElementById("topCityBtn");
+    if (topBtn) {
+      topBtn.textContent = cityName + " ▾";
+    }
+    const searchInp = document.getElementById("searchInput");
+    if (searchInp) {
+      searchInp.placeholder = "在「" + cityName + "」搜站台选线路，或临时查公交";
+    }
+  }
+
+  function updateRefreshStamp() {
+    const d = new Date();
+    const hh = String(d.getHours()).padStart(2, "0");
+    const mm = String(d.getMinutes()).padStart(2, "0");
+    const ss = String(d.getSeconds()).padStart(2, "0");
+    document.getElementById("refreshStamp").textContent = hh + ":" + mm + ":" + ss + " 更新";
+  }
+
+  function startAutoLoop() {
+    if (autoTimer) clearInterval(autoTimer);
+    autoTimer = setInterval(() => {
+      if (document.hidden) return;
+      if (window.DetailMod.isOpen()) {
+        window.DetailMod.refreshLineDetailModal(false);
+      } else if (activePage === "home") {
+        if (homeSubTab === "fav") refreshFavorites(false);
+        else refreshNearbyStops(false);
+      }
+    }, (state.settings.autoRefreshSec || 15) * 1000);
+  }
+
+  // Hardware Back Key Support
+  window.__handleHardwareBack = function () {
+    if (window.DetailMod.isAuxOpen()) {
+      window.DetailMod.closeAuxSheet();
+      return true;
+    }
+    if (window.DetailMod.isOpen()) {
+      window.DetailMod.closeLineDetailModal();
+      return true;
+    }
+    if (activePage === "settings") {
+      switchMainPage("home");
+      return true;
+    }
+    return false;
+  };
+
+  window.AppUI = {
+    tick,
+    showToast,
+    hideToast,
+    formatSafeError,
+    getState: () => state,
+    getWatchState: () => watchState,
+    extractBestStnState,
+    isFavoriteKey: (key) => state.favorites.some(x => x.key === key),
+    toggleFavoriteEntry: (entry) => {
+      const idx = state.favorites.findIndex(x => x.key === entry.key);
+      if (idx >= 0) {
+        state.favorites.splice(idx, 1);
+        S.saveState(state);
+        renderFavoritesList();
+        return false;
+      }
+      state.favorites.unshift(entry);
+      S.saveState(state);
+      refreshFavorites(false);
+      return true;
+    },
+    openFavCard: (idx) => {
+      const item = state.favorites[idx];
+      if (item) window.DetailMod.openLineDetailModal(item);
+    },
+    flipFavCard,
+    toggleWatchFav: (idx) => {
+      const item = state.favorites[idx];
+      if (item) toggleWatchForItem(item);
+    },
+    toggleWatchForItem,
+    stopWatchNow,
+    refreshCurrent: () => {
+      if (homeSubTab === "fav") refreshFavorites(true);
+      else refreshNearbyStops(true);
+    },
+    switchMainPage,
+    switchHomeSubTab,
+    onSearchInput,
+    clearSearch,
+    pickSearchResultLine,
+    pickSearchResultStation,
+    openCityPickerModal,
+    filterCityList,
+    selectCityById,
+    openLocationPicker,
+    runGeocodeSearch,
+    applyGeoCandidate,
+    selectPresetSpot,
+    triggerGpsLocate,
+    adjustSetting,
+    toggleNightDnd: (checked) => {
+      state.settings.nightDnd = !!checked;
+      S.saveState(state);
+      showToast(checked ? "已开启夜间免打扰（23:00-07:00静默）" : "已关闭夜间免打扰");
+    },
+    changeThemeMode: (mode) => {
+      state.settings.themeMode = mode;
+      S.saveState(state);
+      applyTheme();
+    },
+    moveFavUp: (idx) => {
+      if (idx <= 0) return;
+      tick();
+      const tmp = state.favorites[idx - 1];
+      state.favorites[idx - 1] = state.favorites[idx];
+      state.favorites[idx] = tmp;
+      S.saveState(state);
+      renderSettingsPage();
+      renderFavoritesList();
+    },
+    removeFavAt: (idx) => {
+      tick();
+      state.favorites.splice(idx, 1);
+      S.saveState(state);
+      renderSettingsPage();
+      renderFavoritesList();
+      showToast("已移除该置顶线路");
+    },
+    sendTestAlert: () => {
+      tick();
+      if (window.AndroidBridge && typeof window.AndroidBridge.sendTestNotification === "function") {
+        window.AndroidBridge.sendTestNotification(
+          "24路 → 豆市街复兴东路 快到站啦！",
+          "候车站「陕西北路南京西路」：还有 1 站 · 约 2 分钟，请准备上车。"
+        );
+      }
+      showToast("已发送测试到站震动通知");
+    },
+    openBatteryKeepAlive: () => {
+      tick();
+      if (window.AndroidBridge && typeof window.AndroidBridge.openKeepAliveSettings === "function") {
+        window.AndroidBridge.openKeepAliveSettings();
+      } else {
+        showToast("请在系统设置中允许后台无限制运行");
+      }
+    }
+  };
+
+  document.addEventListener("DOMContentLoaded", () => {
+    applyTheme();
+    renderHeaderLoc();
+    if (window.AndroidBridge && typeof window.AndroidBridge.getWatchState === "function") {
+      try {
+        watchState = JSON.parse(window.AndroidBridge.getWatchState());
+        renderWatchBanner();
+      } catch (e) {}
+    }
+    renderFavoritesList();
+    refreshFavorites(false);
+    startAutoLoop();
+  });
+})();
+
+</script>
+</body>
+</html>
